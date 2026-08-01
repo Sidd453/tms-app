@@ -1,0 +1,6 @@
+flask
+pymysql
+flask-cors
+werkzeug
+python-dotenv
+gunicorn
