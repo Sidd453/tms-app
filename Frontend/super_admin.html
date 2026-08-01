@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <title>Super Admin Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --dark-bg: #020617;
+            --glass-border: rgba(148,163,184,0.2);
+            --primary-gradient: linear-gradient(135deg,#6366f1,#22d3ee);
+            --gold: #f59e0b;
+        }
+        body { background:#f8fafc; min-height:100vh; color:#1e293b; font-family:"Segoe UI",system-ui,sans-serif; }
+
+        /* SIDEBAR */
+        .sidebar { width:220px; min-height:100vh; background:var(--dark-bg); position:fixed; top:0; left:0; padding:24px 16px; box-shadow:10px 0 30px rgba(0,0,0,.1); color:#94a3b8; z-index:1000; display:flex; flex-direction:column; }
+        .logo-box { background:var(--primary-gradient); padding:12px; border-radius:12px; color:#fff; font-weight:800; text-align:center; margin-bottom:30px; font-size:14px; letter-spacing:1px; }
+        .nav-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:10px; cursor:pointer; transition:.3s; margin-bottom:5px; font-size:14px; color:#94a3b8; text-decoration:none; }
+        .nav-item i { font-size:18px; }
+        .nav-item:hover { background:rgba(255,255,255,.05); color:#e5e7eb; }
+        .nav-item.active { background:rgba(255,255,255,.08); color:#fff; }
+        .sidebar-bottom { margin-top:auto; padding-top:20px; border-top:1px solid rgba(255,255,255,.1); }
+
+        /* MAIN */
+        .main { margin-left:220px; padding:30px; }
+        .dashboard-section { display:none; }
+
+        /* TOPBAR */
+        .dashboard-topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+        .dashboard-topbar-profile { display:flex; align-items:center; gap:10px; cursor:pointer; }
+        .dashboard-topbar-profile-text .name { font-size:13px; font-weight:600; color:#0f172a; }
+        .dashboard-topbar-profile-text .role { font-size:11px; color:#6b7280; }
+
+        /* CARDS */
+        .glass-card { border-radius:24px; padding:24px; border:1px solid var(--glass-border); box-shadow:0 10px 25px rgba(0,0,0,.03); transition:all .3s ease; position:relative; overflow:hidden; }
+        .glass-card:hover { transform:translateY(-5px); box-shadow:0 20px 40px rgba(0,0,0,.1); }
+        .glass-icon { width:48px; height:48px; border-radius:14px; background:rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:15px; }
+        .tag-pill { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background:rgba(0,0,0,.05); padding:4px 10px; border-radius:20px; }
+        .glass-title { font-size:18px; font-weight:700; margin:0; }
+        .glass-sub { font-size:12px; opacity:.8; margin-top:4px; }
+        .btn-action { margin-top:15px; background:#0f172a; color:#fff; border:none; padding:8px 16px; border-radius:10px; font-size:13px; font-weight:600; width:100%; transition:.3s; }
+        .btn-action:hover { background:#1e293b; color:#fff; }
+        .card-red { background:linear-gradient(135deg,#fff1f2,#fecdd3); }
+        .card-orange { background:linear-gradient(135deg,#fff7ed,#fed7aa); }
+        .card-blue { background:linear-gradient(135deg,#eff6ff,#dbeafe); }
+        .card-white { background:linear-gradient(135deg,#f8fafc,#f1f5f9); }
+        .card-dark { background:#fff; border:1px solid var(--glass-border); border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,.05); overflow:hidden; }
+
+        /* TABLE */
+        .table thead th { background:#f8fafc; color:#64748b; text-transform:uppercase; font-size:11px; letter-spacing:1px; padding:15px; border:none; }
+        .table tbody td { padding:15px; border-bottom:1px solid #f1f5f9; font-size:14px; }
+        .badge-soft { padding:6px 12px; border-radius:8px; font-weight:600; font-size:12px; }
+
+        /* MODAL */
+        .modal-content { border-radius:24px; border:none; padding:10px; }
+        .modal-header { border:none; padding-bottom:0; }
+        .modal-footer { border:none; }
+        .form-control, .form-select { border-radius:12px; padding:10px; background:#f8fafc; border:1px solid #e2e8f0; }
+
+        /* PROJECT STATUS CARD */
+        .proj-status-card { border-radius:16px; padding:20px; border:1px solid #e2e8f0; background:#fff; cursor:pointer; transition:all .3s; }
+        .proj-status-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,.1); border-color:#6366f1; }
+        .proj-detail-panel { display:none; }
+        .proj-detail-panel.active { display:block; }
+
+        /* FILE LIST */
+        .file-chip { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:4px 10px; font-size:12px; margin:4px; }
+        .file-chip .remove-file { background:none; border:none; color:#ef4444; cursor:pointer; padding:0; font-size:13px; line-height:1; }
+
+        /* EMPLOYEE CARD */
+        .emp-card { border-radius:18px; padding:20px; border:1px solid #e2e8f0; background:#fff; transition:all .3s; cursor:pointer; }
+        .emp-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.1); transform:translateY(-3px); }
+
+        /* PROFILE UPLOAD */
+        .profile-pic-wrap { position:relative; width:120px; height:120px; margin:0 auto; }
+        .profile-pic-wrap img { width:120px; height:120px; border-radius:50%; object-fit:cover; }
+
+        /* ANIMATIONS */
+        @keyframes cardEntrance { from{opacity:0;transform:translateY(30px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .animate-card { opacity:0; animation:cardEntrance .7s ease-out forwards; }
+        .delay-1 { animation-delay:.1s; } .delay-2 { animation-delay:.3s; } .delay-3 { animation-delay:.5s; } .delay-4 { animation-delay:.7s; }
+
+        /* SECTION HEADER */
+        .section-header h2, .section-header h3 { font-weight:700; color:#0f172a; }
+        .section-header p { font-size:14px; color:#64748b; }
+
+        /* OTP INPUT */
+        .otp-box { display:flex; gap:10px; justify-content:center; margin:16px 0; }
+        .otp-digit { width:46px; height:52px; text-align:center; font-size:22px; font-weight:700; border-radius:12px; border:2px solid #e2e8f0; background:#f8fafc; transition:.2s; }
+        .otp-digit:focus { border-color:#6366f1; outline:none; background:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+
+        /* Method selector buttons */
+        .method-btn { flex:1; padding:12px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6); font-size:.85rem; font-weight:600; cursor:pointer; transition:all .3s; }
+        .method-btn.active { border-color:#3b82f6; background:rgba(59,130,246,0.12); color:#60a5fa; }
+
+        /* MOBILE */
+        @media(max-width:768px){
+            .sidebar { display:none; }
+            .main { margin-left:0; padding:20px; }
+            .table thead { display:none; }
+            .table,.table tbody,.table tr,.table td { display:block; width:100%; }
+            .table tr { margin-bottom:15px; border:1px solid rgba(0,0,0,.1); border-radius:10px; background:#fff; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,.05); }
+            .table td { text-align:right; padding-left:50%; position:relative; border:none !important; }
+            .table td::before { content:attr(data-label); position:absolute; left:10px; width:45%; font-weight:bold; text-align:left; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- MOBILE TOP BAR -->
+<div class="d-md-none d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-white">
+    <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+        <i class="bi bi-list"></i>
+    </button>
+    <span class="fw-bold small">Super Admin Panel</span>
+    <span></span>
+</div>
+
+<!-- DESKTOP SIDEBAR -->
+<div class="sidebar d-none d-md-flex flex-column">
+    <div class="logo-box">SUPER ADMIN</div>
+    <a href="#" class="nav-item active" onclick="showSection('overview',event)"><i class="bi bi-speedometer2"></i> Overview</a>
+    <a href="#" class="nav-item" onclick="showSection('project-tracking',event)"><i class="bi bi-folder2"></i> Projects</a>
+    <a href="#" class="nav-item" onclick="showSection('employees',event)"><i class="bi bi-people"></i> Employees</a>
+    <a href="#" class="nav-item" onclick="showSection('departments',event)"><i class="bi bi-building"></i> Departments</a>
+    <a href="#" class="nav-item" onclick="showSection('roles',event)"><i class="bi bi-shield-check"></i> Roles</a>
+    <div class="sidebar-bottom">
+        <a href="#" class="nav-item" onclick="showSection('profile',event)"><i class="bi bi-person-circle"></i> My Profile</a>
+        <a href="index.html" class="nav-item text-danger mt-2" onclick="doLogout(event)"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+    </div>
+</div>
+
+<!-- MOBILE OFFCANVAS -->
+<div class="offcanvas offcanvas-start bg-dark text-light" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">SUPER ADMIN</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <a href="#" class="nav-item active" onclick="showSection('overview',event)" data-bs-dismiss="offcanvas"><i class="bi bi-speedometer2"></i> Overview</a>
+        <a href="#" class="nav-item" onclick="showSection('project-tracking',event)" data-bs-dismiss="offcanvas"><i class="bi bi-folder2"></i> Projects</a>
+        <a href="#" class="nav-item" onclick="showSection('employees',event)" data-bs-dismiss="offcanvas"><i class="bi bi-people"></i> Employees</a>
+        <a href="#" class="nav-item" onclick="showSection('departments',event)" data-bs-dismiss="offcanvas"><i class="bi bi-building"></i> Departments</a>
+        <a href="#" class="nav-item" onclick="showSection('roles',event)" data-bs-dismiss="offcanvas"><i class="bi bi-shield-check"></i> Roles</a>
+        <hr class="border-secondary">
+        <a href="#" class="nav-item" onclick="showSection('profile',event)" data-bs-dismiss="offcanvas"><i class="bi bi-person-circle"></i> My Profile</a>
+        <a href="index.html" class="nav-item text-danger mt-2" data-bs-dismiss="offcanvas" onclick="doLogout(event)"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+    </div>
+</div>
+
+<!-- ===================== MAIN ===================== -->
+<div class="main">
+    <div class="dashboard-topbar mb-3 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0">Actions Overview</h2>
+            <p class="mb-0 text-muted" style="font-size:13px;">Welcome back, manage your Team and resources.</p>
+        </div>
+        <div class="dashboard-topbar-profile" onclick="showSection('profile',event)">
+            <div class="text-end me-1 dashboard-topbar-profile-text">
+                <div class="name" id="topbarName">Purva Hande</div>
+                <div class="role">Super Admin</div>
+            </div>
+            <img id="profilePicHeader" src="https://ui-avatars.com/api/?name=Purva+Hande&background=6366f1&color=fff" class="rounded-circle border border-2 border-primary" width="40" height="40">
+        </div>
+    </div>
+
+    <!-- ===== SECTION: OVERVIEW ===== -->
+    <div id="section-overview" class="dashboard-section" style="display:block;">
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="glass-card card-red animate-card delay-1">
+                    <div class="glass-icon text-danger"><i class="bi bi-folder-plus"></i></div>
+                    <span class="tag-pill">New</span>
+                    <p class="glass-title">Create Project</p>
+                    <p class="glass-sub">Initiate new company ventures.</p>
+                    <button class="btn-action" data-bs-toggle="modal" data-bs-target="#createProjectModal">Create Now</button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card card-orange animate-card delay-2">
+                    <div class="glass-icon text-warning"><i class="bi bi-arrow-left-right"></i></div>
+                    <span class="tag-pill">Assign</span>
+                    <p class="glass-title">Assign PM</p>
+                    <p class="glass-sub">Handover project to Manager.</p>
+                    <button class="btn-action" data-bs-toggle="modal" data-bs-target="#assignProjectModal">Assign Now</button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card card-blue animate-card delay-3">
+                    <div class="glass-icon text-primary"><i class="bi bi-building-add"></i></div>
+                    <span class="tag-pill">Org</span>
+                    <p class="glass-title">Department</p>
+                    <p class="glass-sub">Setup new organization unit.</p>
+                    <button class="btn-action" data-bs-toggle="modal" data-bs-target="#createDeptModal">Create Dept</button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card card-white animate-card delay-4">
+                    <div class="glass-icon text-success"><i class="bi bi-person-plus"></i></div>
+                    <span class="tag-pill">HR</span>
+                    <p class="glass-title">Add Employee</p>
+                    <p class="glass-sub">Onboard new team members.</p>
+                    <button class="btn-action" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">Add Member</button>
+                </div>
+            </div>
+        </div>
+        <!-- Search -->
+        <div class="mb-3">
+            <div class="input-group shadow-sm" style="max-width:420px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="overviewSearch" placeholder="Search recent projects..." oninput="filterOverview(this.value)">
+            </div>
+        </div>
+        <div class="card card-dark animate-card delay-2">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Recent Projects</h5>
+                <button class="btn btn-sm btn-dark rounded-pill px-3" onclick="showSection('project-tracking',null)">View All</button>
+            </div>
+            <div class="table-responsive p-3">
+                <table class="table align-middle">
+                    <thead><tr><th>Code</th><th>Project Name</th><th>Client</th><th>Deadline</th><th>Status</th></tr></thead>
+                    <tbody id="overviewProjectsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION: PROJECTS ===== -->
+    <div id="section-project-tracking" class="dashboard-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1">Projects</h4>
+                <p class="text-muted small mb-0">Track status of all active projects.</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                    <i class="bi bi-plus-lg me-1"></i> New Project
+                </button>
+                <span class="badge bg-dark rounded-pill px-3" id="projStatusCount">Total: 0</span>
+            </div>
+        </div>
+        <!-- Search -->
+        <div class="mb-3">
+            <div class="input-group shadow-sm" style="max-width:420px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="projSearch" placeholder="Search by name, code or client..." oninput="filterProjects(this.value)">
+            </div>
+        </div>
+        <div class="row g-3 mb-4" id="projStatusGrid"></div>
+        <div id="projDetailPanel" class="proj-detail-panel">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1" id="detailProjName">—</h5>
+                        <small class="text-muted" id="detailProjCode">—</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="closeProjDetail()">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Client</small><span id="detailClient" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Assigned</small><span id="detailAssigned" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Deadline</small><span id="detailDeadline" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Est. Hours</small><span id="detailHours" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Priority</small><span id="detailPriority" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Status</small><span id="detailStatus" class="fw-bold">—</span></div></div>
+                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Progress</small><div class="d-flex align-items-center gap-2 mt-1"><div class="progress flex-grow-1" style="height:10px;border-radius:8px;"><div class="progress-bar bg-primary" id="detailProgressBar" style="width:0%"></div></div><span class="fw-bold text-primary" id="detailProgressVal">0%</span></div></div></div>
+                    <div class="col-md-8"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Description</small><span id="detailDesc">—</span></div></div>
+                    <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-2">Files</small><div id="detailFiles">—</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION: EMPLOYEES ===== -->
+    <div id="section-employees" class="dashboard-section">
+        <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+            <h3 class="fw-bold">Staff Directory</h3>
+            <button class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                <i class="bi bi-person-plus me-1"></i> Add Member
+            </button>
+        </div>
+        <!-- Search -->
+        <div class="mb-3">
+            <div class="input-group shadow-sm" style="max-width:420px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="empSearch" placeholder="Search by name, email or department..." oninput="filterEmployees(this.value)">
+            </div>
+        </div>
+        <!-- Role Filter Boxes -->
+        <div class="d-flex gap-2 flex-wrap mb-3" id="roleFilterBtns">
+            <button class="btn btn-dark rounded-pill px-3 py-1 role-filter-btn active" onclick="filterByRole('all', this)" style="font-size:13px;">All Employees</button>
+            <button class="btn btn-outline-primary rounded-pill px-3 py-1 role-filter-btn" onclick="filterByRole('tl', this)" style="font-size:13px;"><i class="bi bi-people-fill me-1"></i>Team Leaders</button>
+            <button class="btn btn-outline-success rounded-pill px-3 py-1 role-filter-btn" onclick="filterByRole('developer', this)" style="font-size:13px;"><i class="bi bi-code-slash me-1"></i>Developers</button>
+            <button class="btn btn-outline-warning rounded-pill px-3 py-1 role-filter-btn" onclick="filterByRole('pm', this)" style="font-size:13px;"><i class="bi bi-person-gear me-1"></i>Project Managers</button>
+        </div>
+        <div class="row g-3" id="employeeGrid"></div>
+        <div id="empDetailPanel" class="proj-detail-panel mt-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-primary"></i>Employee Details</h5>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="closeEmpDetail()">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                </div>
+                <div class="row g-3" id="empDetailContent"></div>
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-dark rounded-pill px-4" onclick="editCurrentEmp()"><i class="bi bi-pencil me-2"></i>Edit</button>
+                    <button class="btn btn-outline-danger rounded-pill px-4" onclick="deleteCurrentEmp()"><i class="bi bi-trash me-2"></i>Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION: DEPARTMENTS ===== -->
+    <div id="section-departments" class="dashboard-section">
+        <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+            <h3 class="fw-bold">Departments</h3>
+            <button class="btn btn-dark rounded-pill" data-bs-toggle="modal" data-bs-target="#createDeptModal">New Dept</button>
+        </div>
+        <!-- Search -->
+        <div class="mb-3">
+            <div class="input-group shadow-sm" style="max-width:420px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="deptSearch" placeholder="Search by department or HOD..." oninput="filterDepts(this.value)">
+            </div>
+        </div>
+        <div class="card card-dark animate-card delay-1 border-0 shadow-sm">
+            <div class="table-responsive p-3">
+                <table class="table align-middle">
+                    <thead><tr><th>Dept Name</th><th>Head of Dept (HOD)</th><th>Members</th><th>Actions</th></tr></thead>
+                    <tbody id="deptBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION: ROLES ===== -->
+    <div id="section-roles" class="dashboard-section">
+        <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+            <div><h3 class="fw-bold">Roles & Permissions</h3><p class="small text-muted">View existing system roles or define a new access level.</p></div>
+            <button class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+                <i class="bi bi-shield-plus me-1"></i> Define New Role
+            </button>
+        </div>
+        <!-- Search -->
+        <div class="mb-3">
+            <div class="input-group shadow-sm" style="max-width:420px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="roleSearch" placeholder="Search roles..." oninput="filterRoles(this.value)">
+            </div>
+        </div>
+        <div class="row g-3" id="rolesGrid">
+            <div class="col-md-3"><div class="card animate-card delay-1 p-3 border-0 shadow-sm text-center h-100" style="border-radius:15px;"><div class="glass-icon mx-auto mb-2 text-warning" style="width:40px;height:40px;"><i class="bi bi-shield-fill-check"></i></div><div class="fw-bold">Super Admin</div><div class="small text-muted" style="font-size:11px;">Full System Access</div></div></div>
+            <div class="col-md-3"><div class="card animate-card delay-2 p-3 border-0 shadow-sm text-center h-100" style="border-radius:15px;"><div class="glass-icon mx-auto mb-2 text-primary" style="width:40px;height:40px;"><i class="bi bi-person-gear"></i></div><div class="fw-bold">Project Manager</div><div class="small text-muted" style="font-size:11px;">Project & Task Authority</div></div></div>
+            <div class="col-md-3"><div class="card animate-card delay-3 p-3 border-0 shadow-sm text-center h-100" style="border-radius:15px;"><div class="glass-icon mx-auto mb-2 text-success" style="width:40px;height:40px;"><i class="bi bi-people-fill"></i></div><div class="fw-bold">Team Leader</div><div class="small text-muted" style="font-size:11px;">Lead & Report</div></div></div>
+            <div class="col-md-3"><div class="card animate-card delay-4 p-3 border-0 shadow-sm text-center h-100" style="border-radius:15px;"><div class="glass-icon mx-auto mb-2" style="width:40px;height:40px;color:#a78bfa;"><i class="bi bi-code-slash"></i></div><div class="fw-bold">Developer</div><div class="small text-muted" style="font-size:11px;">Build & Deploy</div></div></div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION: PROFILE ===== -->
+    <div id="section-profile" class="dashboard-section">
+        <div class="section-header mb-4"><h2 class="fw-bold mb-1">Master Control Profile</h2><p class="text-muted small">Manage high-level administrative credentials.</p></div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card animate-card delay-1 border-0 shadow-sm rounded-4 text-center p-4 h-100">
+                    <div class="profile-pic-wrap mb-3">
+                        <img id="profilePicProfile" src="https://ui-avatars.com/api/?name=Purva&background=6366f1&color=fff" class="shadow-lg">
+                        <label for="upload-photo" class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow" style="width:32px;height:32px;background:#0f172a;color:#fff;cursor:pointer;border:2px solid #fff;">
+                            <i class="bi bi-camera-fill" style="font-size:14px;"></i>
+                        </label>
+                        <input type="file" id="upload-photo" hidden accept="image/*" onchange="previewImage(event)">
+                    </div>
+                    <h4 class="fw-bold mb-1" id="profileDisplayName">Purva Hande</h4>
+                    <p class="badge bg-dark rounded-pill px-3 py-2 mb-3">Master Administrator</p>
+                    <div class="pt-3 border-top mt-2">
+                        <div class="d-flex justify-content-between small mb-2"><span class="text-muted">Security Level</span><span class="fw-bold text-danger">Tier 1 Root</span></div>
+                        <div class="d-flex justify-content-between small"><span class="text-muted">System Status</span><span class="fw-bold text-success">Active</span></div>
+                    </div>
+                    <button class="btn btn-dark rounded-pill w-100 mt-4 fw-bold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="bi bi-pencil-square me-2"></i>Update Profile
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card animate-card delay-2 border-0 shadow-sm rounded-4 p-4">
+                    <div id="cpView">
+                        <h6 class="fw-bold mb-4"><i class="bi bi-key me-2 text-primary"></i>Change Password</h6>
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-1">Current Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2" id="currPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('currPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-currPass"></i></span></div></div>
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-1">New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2" id="newPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('newPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-newPass"></i></span></div></div>
+                        <div class="mb-4"><label class="small fw-bold text-muted mb-1">Confirm New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2" id="confPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('confPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-confPass"></i></span></div></div>
+                        <button type="button" class="btn btn-dark w-100 rounded-pill fw-bold mb-3" onclick="submitPasswordChange()"><i class="bi bi-check-circle me-2"></i>Update Password</button>
+                        <div class="text-center"><a href="#" class="small text-primary fw-bold text-decoration-none" onclick="showForgotFlow(event)"><i class="bi bi-question-circle me-1"></i>Forgot Password?</a></div>
+                    </div>
+                    <div id="fpView" style="display:none;">
+                        <div id="fpStep1">
+                            <div class="d-flex align-items-center mb-4"><button class="btn btn-sm btn-outline-secondary rounded-pill me-2" onclick="hideForgotFlow()"><i class="bi bi-arrow-left"></i></button><h6 class="fw-bold mb-0"><i class="bi bi-shield-lock me-2 text-primary"></i>Forgot Password</h6></div>
+                            <p class="small text-muted mb-3">Select how you want to receive your OTP.</p>
+                            <div class="row g-3 mb-3">
+                                <div class="col-6"><div class="card border-2 p-3 text-center rounded-3 fp-method-card" id="fpMethodEmail" onclick="selectFpMethod('email')" style="cursor:pointer;border-color:#e2e8f0;"><i class="bi bi-envelope-fill text-primary fs-4 mb-1"></i><div class="small fw-bold">Email OTP</div><div class="text-muted" style="font-size:11px;">p***@srujaninfotech.com</div></div></div>
+                                <div class="col-6"><div class="card border-2 p-3 text-center rounded-3 fp-method-card" id="fpMethodPhone" onclick="selectFpMethod('phone')" style="cursor:pointer;border-color:#e2e8f0;"><i class="bi bi-phone-fill text-success fs-4 mb-1"></i><div class="small fw-bold">SMS OTP</div><div class="text-muted" style="font-size:11px;">+91 *****49543</div></div></div>
+                            </div>
+                            <button class="btn btn-dark w-100 rounded-pill fw-bold" onclick="sendOtp()"><i class="bi bi-send me-2"></i>Send OTP</button>
+                        </div>
+                        <div id="fpStep2" style="display:none;">
+                            <div class="d-flex align-items-center mb-4"><button class="btn btn-sm btn-outline-secondary rounded-pill me-2" onclick="resetFpFlow()"><i class="bi bi-arrow-left"></i></button><h6 class="fw-bold mb-0">Enter OTP</h6></div>
+                            <div class="text-center mb-3"><div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:56px;height:56px;"><i class="bi bi-shield-check text-primary fs-4"></i></div><p class="small text-muted mb-0" id="fpOtpSentMsg">OTP sent.</p></div>
+                            <div class="otp-box mb-2">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,0)">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,1)">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,2)">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,3)">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,4)">
+                                <input type="text" maxlength="1" class="otp-digit form-control" oninput="otpNext(this,5)">
+                            </div>
+                            <div class="text-center small text-muted mb-3">Didn't receive? <a href="#" class="text-primary fw-bold" onclick="resendOtp(event)">Resend OTP</a></div>
+                            <button class="btn btn-dark w-100 rounded-pill fw-bold" onclick="verifyOtp()"><i class="bi bi-check-circle me-2"></i>Verify OTP</button>
+                        </div>
+                        <div id="fpStep3" style="display:none;">
+                            <div class="text-center mb-3"><div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:56px;height:56px;"><i class="bi bi-unlock-fill text-success fs-4"></i></div><p class="small text-muted">OTP Verified! Set your new password.</p></div>
+                            <div class="mb-3"><label class="small fw-bold text-muted mb-1">New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2" id="fpNewPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('fpNewPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-fpNewPass"></i></span></div></div>
+                            <div class="mb-3"><label class="small fw-bold text-muted mb-1">Confirm New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2" id="fpConfPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('fpConfPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-fpConfPass"></i></span></div></div>
+                            <button class="btn btn-success w-100 rounded-pill fw-bold" onclick="resetPassword()"><i class="bi bi-lock-fill me-2"></i>Reset Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="fw-bold"><i class="bi bi-person-gear me-2"></i>Update Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="profileInfoForm">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Full Name</label><input type="text" class="form-control" id="profileName" value="Purva Hande"></div>
+                        <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Official Email</label><input type="email" class="form-control" id="profileEmail" value="purvaadmin@srujaninfotech.com"></div>
+                        <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Mobile Number</label><input type="tel" class="form-control" id="profileMobile" value="+91 77599 49543"></div>
+                        <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Location</label><input type="text" class="form-control" id="profileLocation" value="Pune"></div>
+                        <div class="col-12 text-end mt-2">
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" onclick="saveProfileInfo()"><i class="bi bi-check-circle me-2"></i>Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CREATE PROJECT MODAL -->
+<div class="modal fade" id="createProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-light">
+                <h5 class="fw-bold"><i class="bi bi-plus-circle me-2"></i>New Project Setup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createProjectForm" onsubmit="createNewProject();return false;">
+                    <div class="row g-3">
+                        <div class="col-md-8"><label class="form-label fw-bold small">Project Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="projName" required oninput="autoGenerateProjectCode()"></div>
+                        <div class="col-md-4"><label class="form-label fw-bold small">Project Code <small class="text-muted fw-normal">(Auto)</small></label><input type="text" class="form-control bg-light" id="projCode" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Client Name</label><input type="text" class="form-control" id="projClient" oninput="autoGenerateProjectCode()"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Priority Level <small class="text-muted fw-normal">(Auto)</small></label><input type="text" class="form-control bg-light" id="projPriority" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Date Assigned <span class="text-danger">*</span></label><input type="date" class="form-control" id="projAssigned" required onchange="autoCalcProjectFields()"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Target Deadline <span class="text-danger">*</span></label><input type="date" class="form-control" id="projDeadline" required onchange="autoCalcProjectFields()"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Estimated Hours <small class="text-muted fw-normal">(Auto from dates)</small></label><input type="text" class="form-control bg-light" id="projHours" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Project Status <small class="text-muted fw-normal">(Auto)</small></label><input type="text" class="form-control bg-light" id="projStatus" value="Planned" readonly></div>
+                        <div class="col-12"><label class="form-label fw-bold small">Project Description</label><textarea class="form-control" id="projDesc" rows="3"></textarea></div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Project Files</label>
+                            <div class="border rounded-3 p-3 bg-light">
+                                <div class="row g-2 align-items-end mb-2">
+                                    <div class="col-md-7"><label class="small text-muted mb-1">File Name / Description</label><input type="text" class="form-control bg-white" id="fileDescInput" placeholder="e.g. SRS Document, UI Wireframe"></div>
+                                    <div class="col-md-4"><label class="small text-muted mb-1">Attach File <small>(optional)</small></label><input type="file" class="form-control bg-white border-0 shadow-sm" id="adminProjectFile" onchange="syncFileNameFromUpload()"></div>
+                                    <div class="col-md-1 d-flex align-items-end"><button type="button" class="btn btn-dark rounded-3 w-100" onclick="addFileEntry()" title="Add file"><i class="bi bi-plus-lg"></i></button></div>
+                                </div>
+                                <div class="form-text mb-2" style="font-size:10px;">Type a file name/description, optionally attach a file, then click <b>+</b> to add.</div>
+                                <div id="projFileChips" class="d-flex flex-wrap gap-1"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end mt-2">
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Discard</button>
+                            <button type="submit" class="btn btn-dark px-4 rounded-pill"><i class="bi bi-check-circle me-1"></i>Save & Create</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ASSIGN PM MODAL -->
+<div class="modal fade" id="assignProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header"><h5 class="fw-bold"><i class="bi bi-link-45deg me-2"></i>Assign Project Responsibility</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="assignForm">
+                    <div class="mb-4 p-3 bg-light rounded-3 border">
+                        <label class="form-label fw-bold small text-primary">Step 1: Select Project</label>
+                        <select class="form-select form-select-lg shadow-sm" id="assignProjectSelect" required onchange="loadAssignProjectDetails()"><option value="" selected disabled>-- Choose Project --</option></select>
+                    </div>
+                    <div id="assignProjectPreview" style="display:none;" class="mb-4">
+                        <div class="card bg-light border-0 p-3 shadow-sm rounded-4">
+                            <h6 class="small fw-bold text-muted mb-3"><i class="bi bi-info-circle me-1"></i>Project Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Project Code</label><div id="ap-code" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Client</label><div id="ap-client" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Assigned Date</label><div id="ap-assigned" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Target Deadline</label><div id="ap-deadline" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Estimated Hours</label><div id="ap-hours" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Priority</label><div id="ap-priority" class="fw-bold">—</div></div>
+                                <div class="col-md-6"><label class="small text-secondary fw-bold">Status</label><div id="ap-status" class="fw-bold">—</div></div>
+                                <div class="col-12"><label class="small text-secondary fw-bold">Description</label><div id="ap-desc" class="fw-bold">—</div></div>
+                                <div class="col-12"><label class="small text-secondary fw-bold">Files</label><div id="ap-files">—</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label fw-bold small">Step 2: Select Project Manager</label><select class="form-select" id="assignPmSelect" required><option value="" selected disabled>Choose PM...</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Priority Note</label><input type="text" class="form-control"></div>
+                    </div>
+                    <div class="mt-4 text-end"><button type="submit" class="btn btn-dark px-5 rounded-pill py-2 shadow-sm">Confirm Assign</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD EMPLOYEE MODAL -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light"><h5 class="fw-bold"><i class="bi bi-person-plus me-2"></i>Add New Employee</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="addEmployeeForm">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label fw-bold small">Full Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="empName" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Employee ID <small class="text-muted fw-normal">(Auto)</small></label><input type="text" class="form-control bg-light" id="empId" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Official Email <span class="text-danger">*</span></label><input type="email" class="form-control" id="empOfficialEmail" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Personal Email</label><input type="email" class="form-control" id="empPersonalEmail"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Mobile Number <span class="text-danger">*</span></label><input type="tel" class="form-control" id="empMobile" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Department</label><select class="form-select" id="empDept"><option value="">-- None --</option><option>IT Development</option><option>Human Resources</option><option>Quality Assurance</option><option>Design</option><option>Operations</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Role</label><select class="form-select" id="empRole"><option value="Junior Developer">Junior Developer</option><option value="Senior Developer">Senior Developer</option><option value="Team Leader">Team Leader</option><option value="Project Manager">Project Manager</option><option value="UI/UX Designer">UI/UX Designer</option><option value="QA Engineer">QA Engineer</option><option value="HR Executive">HR Executive</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Date of Joining <span class="text-danger">*</span></label><input type="date" class="form-control" id="empDoj" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Work Location</label><input type="text" class="form-control" id="empLocation"></div>
+                        <div class="col-12"><label class="form-label fw-bold small">Tech Stack / Skills</label><input type="text" class="form-control" id="empSkills"></div>
+                        <div class="col-12 text-end mt-2"><button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-dark px-4 rounded-pill">Add to System</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white"><h5 class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Employee</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="editEmployeeForm">
+                    <input type="hidden" id="editEmpDbId">
+                    <input type="hidden" id="editEmpIndex">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label fw-bold small">Full Name</label><input type="text" class="form-control" id="editEmpName" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Employee ID</label><input type="text" class="form-control bg-light" id="editEmpId" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Official Email</label><input type="email" class="form-control" id="editEmpOfficialEmail" required></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Personal Email</label><input type="email" class="form-control" id="editEmpPersonalEmail"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Mobile</label><input type="tel" class="form-control" id="editEmpMobile"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Department</label><select class="form-select" id="editEmpDept"><option>IT Development</option><option>Human Resources</option><option>Quality Assurance</option><option>Design</option><option>Operations</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Role</label><select class="form-select" id="editEmpRole"><option>Junior Developer</option><option>Senior Developer</option><option>Team Leader</option><option>Project Manager</option><option>UI/UX Designer</option><option>QA Engineer</option><option>HR Executive</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Date of Joining</label><input type="date" class="form-control" id="editEmpDoj"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Work Location</label><input type="text" class="form-control" id="editEmpLocation"></div>
+                        <div class="col-12"><label class="form-label fw-bold small">Skills</label><input type="text" class="form-control" id="editEmpSkills"></div>
+                        <div class="col-12 text-end mt-2"><button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary px-4 rounded-pill">Save Changes</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CREATE DEPARTMENT MODAL -->
+<div class="modal fade" id="createDeptModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header"><h5 class="fw-bold"><i class="bi bi-building me-2"></i>New Department</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="createDeptForm">
+                    <div class="mb-3"><label class="form-label fw-bold small">Department Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="deptName" required></div>
+                    <div class="mb-3"><label class="form-label fw-bold small">Head of Department (HOD)</label><input type="text" class="form-control" id="deptHOD" placeholder="HOD Name"></div>
+                    <div class="mb-3"><label class="form-label fw-bold small">Department Description</label><textarea class="form-control" id="deptDesc" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-dark w-100 py-2 rounded-pill mt-3">Create Department</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CREATE ROLE MODAL -->
+<div class="modal fade" id="createRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <div class="modal-header border-0 pt-4 px-4"><h5 class="fw-bold mb-0">Define Custom Role</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="createRoleForm">
+                    <div class="mb-3"><label class="small fw-bold mb-1 text-muted">Role Name</label><input type="text" class="form-control bg-light border-0 py-2" id="roleNameInput"></div>
+                    <div class="mb-3"><label class="small fw-bold mb-1 text-muted">Access Level</label><select class="form-select bg-light border-0 py-2" id="roleAccessLevel"><option>Read Only</option><option>Restricted Access</option><option>Full Access (Standard)</option></select></div>
+                    <div class="mb-4"><label class="small fw-bold mb-1 text-muted">Description</label><textarea class="form-control bg-light border-0 py-2" id="roleDesc" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-3 fw-bold shadow">Create & Authorize Role</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PM MODAL -->
+<div class="modal fade" id="addPmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white"><h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Register New Project Manager</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="pmForm">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label small fw-bold">Full Name <span class="text-danger">*</span></label><input type="text" class="form-control bg-light border-0" id="pmName" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Employee ID <small class="text-muted fw-normal">(Auto)</small></label><input type="text" class="form-control bg-light border-0" id="pmEmpId" readonly></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Official Email <span class="text-danger">*</span></label><input type="email" class="form-control bg-light border-0" id="pmEmail" required></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Personal Email</label><input type="email" class="form-control bg-light border-0" id="pmPersonalEmail"></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Mobile Number <span class="text-danger">*</span></label><input type="tel" class="form-control bg-light border-0" id="pmMobile" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Experience (Years) <span class="text-danger">*</span></label><input type="number" class="form-control bg-light border-0" id="pmExp" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Primary Domain</label><select class="form-select bg-light border-0" id="pmDomain"><option>Full Stack</option><option>Web Dev</option><option>Mobile App</option><option>Cloud Infra</option></select></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Assign Initial Client (Optional)</label><input type="text" class="form-control bg-light border-0" id="pmClient"></div>
+                    </div>
+                    <div class="mt-4"><button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow">Create PM Account</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT PM MODAL -->
+<div class="modal fade" id="editPmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Project Manager</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="editPmForm">
+                    <input type="hidden" id="editPmDbId">
+                    <input type="hidden" id="editPmRowIndex">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label small fw-bold">Full Name</label><input type="text" class="form-control bg-light border-0" id="editPmName" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Employee ID</label><input type="text" class="form-control bg-light border-0" id="editPmEmpId" readonly></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Official Email</label><input type="email" class="form-control bg-light border-0" id="editPmEmail" required></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Personal Email</label><input type="email" class="form-control bg-light border-0" id="editPmPersonalEmail"></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Mobile Number</label><input type="tel" class="form-control bg-light border-0" id="editPmMobile"></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Experience (Years)</label><input type="number" class="form-control bg-light border-0" id="editPmExp" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Primary Domain</label><select class="form-select bg-light border-0" id="editPmDomain"><option>Full Stack</option><option>Web Dev</option><option>Mobile App</option><option>Cloud Infra</option></select></div>
+                    </div>
+                    <div class="mt-4"><button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow">Save Changes</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="api.js"></script>
+
+<div class="modal fade" id="editProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Project</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProjectForm">
+                    <input type="hidden" id="editProjId">
+                    <div class="row g-3">
+                        <div class="col-md-8"><label class="form-label fw-bold small">Project Name</label><input type="text" class="form-control" id="editProjName" required></div>
+                        <div class="col-md-4"><label class="form-label fw-bold small">Project Code</label><input type="text" class="form-control bg-light" id="editProjCode" readonly></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Client Name</label><input type="text" class="form-control" id="editProjClient"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Priority</label><select class="form-select" id="editProjPriority"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option><option>Overdue</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Status</label><select class="form-select" id="editProjStatus"><option>Planned</option><option>Active</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Overdue</option></select></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Progress %</label><input type="number" class="form-control" id="editProjProgress" min="0" max="100"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Date Assigned</label><input type="date" class="form-control" id="editProjAssigned"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold small">Target Deadline</label><input type="date" class="form-control" id="editProjDeadline"></div>
+                        <div class="col-12"><label class="form-label fw-bold small">Description</label><textarea class="form-control" id="editProjDesc" rows="3"></textarea></div>
+                        <div class="col-12 text-end mt-2">
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+            <div class="modal-header bg-primary text-white" style="border-radius:20px 20px 0 0;">
+                <h5 class="fw-bold mb-0"><i class="bi bi-shield-lock me-2"></i>Edit Role</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editRoleId">
+                <div class="mb-3"><label class="form-label fw-bold small text-muted">Role Name</label><input type="text" class="form-control" id="editRoleName" placeholder="Enter role name"></div>
+                <div class="mb-3"><label class="form-label fw-bold small text-muted">Access Level</label><select class="form-select" id="editRoleAccess"><option>Read Only</option><option>Restricted Access</option><option>Full Access (Standard)</option></select></div>
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary flex-fill fw-bold" onclick="saveRoleEdit()"><i class="bi bi-check-circle me-2"></i>Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editDeptModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white"><h5 class="fw-bold"><i class="bi bi-pencil me-2"></i>Edit Department</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="editDeptForm">
+                    <input type="hidden" id="editDeptId">
+                    <div class="mb-3"><label class="form-label fw-bold small">Department Name</label><input type="text" class="form-control" id="editDeptName" required></div>
+                    <div class="mb-3"><label class="form-label fw-bold small">Head of Department</label><select class="form-select" id="editDeptHOD"></select></div>
+                    <div class="mb-3"><label class="form-label fw-bold small">Description</label><textarea class="form-control" id="editDeptDesc" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ============================================================
+   API HELPER
+============================================================ */
+const BASE = window.location.origin;
+const API = {
+    async get(url) {
+        try {
+            const r = await fetch(BASE+url, { credentials: 'include' });
+            const data = await r.json();
+            return data;
+        } catch(e) { console.error('API GET error', url, e); return { success: false, error: 'Server error. Check Flask is running.' }; }
+    },
+    async post(url, body) {
+        try {
+            const r = await fetch(BASE+url, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await r.json();
+            return data;
+        } catch(e) { console.error('API POST error', url, e); return { success: false, error: 'Server error: ' + e.message }; }
+    },
+    async put(url, body) {
+        try {
+            const r = await fetch(BASE+url, {
+                method: 'PUT', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await r.json();
+            return data;
+        } catch(e) { console.error('API PUT error', url, e); return { success: false, error: 'Server error: ' + e.message }; }
+    },
+    async del(url) {
+        try {
+            const r = await fetch(BASE+url, { method: 'DELETE', credentials: 'include' });
+            const data = await r.json();
+            return data;
+        } catch(e) { console.error('API DEL error', url, e); return { success: false, error: 'Server error: ' + e.message }; }
+    }
+};
+
+function toast(icon, title, timer = 1500) {
+    Swal.fire({ icon, title, timer, showConfirmButton: false,
+        toast: true, position: 'top-end' });
+}
+
+/* ============================================================
+   GLOBAL STATE
+============================================================ */
+let projectsData   = [];
+let employeesData  = [];
+let pmData         = [];
+let deptData       = [];
+let currentEmpIndex       = -1;
+let currentProjDetailIndex = -1;
+let projFileStoreCreate   = [];
+let fpSelectedMethod = null;
+let fpGeneratedOtp   = null;
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+async function doLogout(e) {
+    if (e) e.preventDefault();
+    await API.post('/api/auth/logout', {});
+    window.location.href = 'index.html';
+}
+
+/* ============================================================
+   SECTION SWITCHING
+============================================================ */
+function showSection(name, event) {
+    if (event) event.preventDefault();
+    document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+    const t = document.getElementById('section-' + name);
+    if (t) t.style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
+    if (event && event.currentTarget && event.currentTarget.classList.contains('nav-item'))
+        event.currentTarget.classList.add('active');
+    if (name === 'project-tracking') renderProjStatusGrid();
+    if (name === 'employees')        renderEmployeeGrid();
+}
+
+
+/* ============================================================
+   ROLES — render from DB with Edit + Delete
+============================================================ */
+let rolesData = [];
+
+function renderRolesGrid(roles) {
+    rolesData = roles;
+    const grid = document.getElementById('rolesGrid');
+    grid.innerHTML = '';
+    const icons = {'Super Admin':'bi-shield-fill-check text-warning','Project Manager':'bi-person-gear text-primary','Team Leader':'bi-people-fill text-success','Developer':'bi-code-slash'};
+    roles.forEach(r => {
+        const icon = icons[r.role_name] || 'bi-person-workspace';
+        const col  = document.createElement('div');
+        col.className = 'col-md-3';
+        col.setAttribute('data-role', r.role_name);
+        col.setAttribute('data-id', r.id);
+        col.innerHTML = `
+            <div class="card p-3 border-0 shadow-sm text-center h-100 role-card" style="border-radius:15px;position:relative;">
+                <div class="glass-icon mx-auto mb-2" style="width:40px;height:40px;"><i class="bi ${icon}"></i></div>
+                <div class="fw-bold">${r.role_name}</div>
+                <div class="small text-muted mb-2" style="font-size:11px;">${r.access_level}</div>
+                <div class="d-flex justify-content-center gap-2 mt-auto">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-2" onclick="editRole(${r.id},'${r.role_name.replace(/'/g,'\'')  }','${r.access_level.replace(/'/g,'\'')}' )" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-2" onclick="deleteRole(${r.id}, this)" title="Delete"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>`;
+        grid.appendChild(col);
+    });
+}
+
+function editRole(id, currentName, currentAccess) {
+    document.getElementById('editRoleId').value      = id;
+    document.getElementById('editRoleName').value    = currentName;
+    document.getElementById('editRoleAccess').value  = currentAccess || 'Read Only';
+    new bootstrap.Modal(document.getElementById('editRoleModal')).show();
+}
+
+async function saveRoleEdit() {
+    const id          = document.getElementById('editRoleId').value;
+    const role_name   = document.getElementById('editRoleName').value.trim();
+    const access_level = document.getElementById('editRoleAccess').value;
+    if (!role_name) { Swal.fire({icon:'warning', title:'Role name cannot be empty'}); return; }
+    const data = await Roles.update(id, { role_name, access_level });
+    if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('editRoleModal')).hide();
+        const fresh = await Roles.list();
+        if (fresh.success) renderRolesGrid(fresh.data);
+        Swal.fire({icon:'success', title:'Role Updated!', timer:1200, showConfirmButton:false});
+    } else {
+        Swal.fire({icon:'error', title: data.error || 'Update failed'});
+    }
+}
+
+async function deleteRole(id, btn) {
+    const r = await Swal.fire({title:'Delete Role?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete'});
+    if (r.isConfirmed) {
+        const data = await Roles.delete(id);
+        if (data.success) {
+            btn.closest('.col-md-3').remove();
+            Swal.fire({icon:'success', title:'Deleted!', timer:1000, showConfirmButton:false});
+        } else { Swal.fire({icon:'error', title: data.error||'Failed'}); }
+    }
+}
+
+/* ============================================================
+   SEARCH FILTERS
+============================================================ */
+function filterOverview(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#overviewProjectsBody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterProjects(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#projStatusGrid > div').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+let currentRoleFilter = 'all';
+
+function filterByRole(role, btn) {
+    currentRoleFilter = role;
+    // Update active button
+    document.querySelectorAll('.role-filter-btn').forEach(b => {
+        b.classList.remove('active', 'btn-dark', 'btn-primary', 'btn-success', 'btn-warning');
+        b.classList.add(b.dataset.outline || 'btn-outline-secondary');
+    });
+    btn.classList.add('active');
+    // Re-render with filter
+    renderEmployeeGrid();
+}
+
+function filterEmployees(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#employeeGrid > div').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterPMs(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#pmListBody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterDepts(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#deptBody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterRoles(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#rolesGrid > div').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+
+/* ============================================================
+   DATE HELPERS
+============================================================ */
+function toDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    if (dateStr.includes('/')) return dateStr;
+    const [y, m, d] = dateStr.split('-');
+    return d + '/' + m + '/' + y.slice(2);
+}
+function fromDisplayDate(dStr) {
+    if (!dStr || dStr === '—') return '';
+    const parts = dStr.split('/');
+    if (parts.length !== 3) return dStr;
+    return '20' + parts[2] + '-' + parts[1] + '-' + parts[0];
+}
+
+/* ============================================================
+   PROJECT CODE AUTO-GENERATE (client-side visual only)
+============================================================ */
+async function autoGenerateProjectCode() {
+    const name   = document.getElementById('projName').value.trim();
+    const client = document.getElementById('projClient').value.trim();
+    if (!name) { document.getElementById('projCode').value = ''; return; }
+    const words  = name.split(/\s+/);
+    const abbr   = words.length > 1
+        ? words.map(w => w[0]).join('').toUpperCase().slice(0, 4)
+        : name.replace(/\s+/g,'').toUpperCase().slice(0, 3);
+    const cli = client ? client.replace(/\s+/g,'').toUpperCase().slice(0, 3) : 'CLI';
+    try {
+        const res = await Projects.nextCode();
+        const num = res.success ? res.code.split('-').pop() : String(projectsData.length + 1).padStart(3,'0');
+        document.getElementById('projCode').value = 'PRJ-' + abbr + '-' + cli + '-' + num;
+    } catch(e) {
+        document.getElementById('projCode').value = 'PRJ-' + abbr + '-' + cli + '-' + String(projectsData.length + 1).padStart(3,'0');
+    }
+}
+
+function autoCalcProjectFields() {
+    const assignedVal = document.getElementById('projAssigned').value;
+    const deadlineVal = document.getElementById('projDeadline').value;
+    if (!assignedVal) return;
+    const assigned = new Date(assignedVal);
+    const today    = new Date();
+    let priority = 'Low', status = 'Planned';
+    if (deadlineVal) {
+        const deadline = new Date(deadlineVal);
+        const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+        if (daysLeft < 0)        { priority = 'Overdue';  status = 'On Hold'; }
+        else if (daysLeft <= 7)  { priority = 'Critical'; status = 'Active'; }
+        else if (daysLeft <= 30) { priority = 'High';     status = 'Active'; }
+        else if (daysLeft <= 90) { priority = 'Medium';   status = 'Planned'; }
+        else                     { priority = 'Low';      status = 'Planned'; }
+        const totalDays = Math.ceil((deadline - assigned) / (1000 * 60 * 60 * 24));
+        const workdays  = Math.round(totalDays * 5 / 7);
+        document.getElementById('projHours').value = workdays * 7 + ' hrs';
+    }
+    document.getElementById('projPriority').value = priority;
+    document.getElementById('projStatus').value   = status;
+    autoGenerateProjectCode();
+}
+
+/* ============================================================
+   FILE CHIPS
+============================================================ */
+function syncFileNameFromUpload() {
+    const input   = document.getElementById('adminProjectFile');
+    const descBox = document.getElementById('fileDescInput');
+    if (input.files.length && !descBox.value.trim()) descBox.value = input.files[0].name;
+}
+
+function addFileEntry() {
+    const descBox = document.getElementById('fileDescInput');
+    const label   = descBox.value.trim();
+    if (!label) { descBox.focus(); descBox.classList.add('is-invalid'); setTimeout(() => descBox.classList.remove('is-invalid'), 1500); return; }
+    if (projFileStoreCreate.includes(label)) { toast('warning','Already added!'); return; }
+    projFileStoreCreate.push(label);
+    const safeId = label.replace(/\W/g,'_');
+    const chip   = document.createElement('div');
+    chip.className = 'file-chip'; chip.id = 'chip-' + safeId;
+    chip.innerHTML = `<i class="bi bi-file-earmark-text me-1 text-primary"></i>${label}<button class="remove-file" onclick="removeFileChip('${safeId}','${label.replace(/'/g,'')}')">×</button>`;
+    document.getElementById('projFileChips').appendChild(chip);
+    descBox.value = ''; document.getElementById('adminProjectFile').value = '';
+}
+function removeFileChip(safeId, fileName) {
+    const el = document.getElementById('chip-' + safeId);
+    if (el) el.remove();
+    projFileStoreCreate = projFileStoreCreate.filter(f => f !== fileName);
+}
+
+/* ============================================================
+   CREATE PROJECT  —  WIRED TO BACKEND
+============================================================ */
+async function createNewProject() {
+    const payload = {
+        project_code:     document.getElementById('projCode').value.trim(),
+        project_name:     document.getElementById('projName').value.trim(),
+        client_name:      document.getElementById('projClient').value.trim(),
+        date_assigned:    document.getElementById('projAssigned').value,
+        target_deadline:  document.getElementById('projDeadline').value,
+        estimated_hours:  document.getElementById('projHours').value,
+        priority:         document.getElementById('projPriority').value || 'Low',
+        status:           document.getElementById('projStatus').value || 'Planned',
+        description:      document.getElementById('projDesc').value.trim(),
+        files:            [...projFileStoreCreate]
+    };
+    try {
+        const data = await API.post('/api/projects', payload);
+        if (data.success) {
+            projectsData.unshift(data.data);
+            appendOverviewRow(data.data);
+            refreshAssignProjectDropdown();
+            document.getElementById('createProjectForm').reset();
+            projFileStoreCreate = [];
+            document.getElementById('projFileChips').innerHTML = '';
+            document.getElementById('projCode').value   = '';
+            document.getElementById('projHours').value  = '';
+            document.getElementById('projPriority').value = '';
+            document.getElementById('projStatus').value  = 'Planned';
+            bootstrap.Modal.getInstance(document.getElementById('createProjectModal'))?.hide();
+            toast('success', 'Project Created!');
+        } else {
+            Swal.fire({ icon:'error', title:'Error', text: data.error });
+        }
+    } catch(e) { Swal.fire({ icon:'error', title:'Server Error' }); }
+}
+
+function appendOverviewRow(p) {
+    const row = `<tr>
+        <td data-label="Code"><span class="badge bg-light text-dark border">${p.code}</span></td>
+        <td data-label="Project"><b>${p.name}</b></td>
+        <td data-label="Client">${p.client || '—'}</td>
+        <td data-label="Deadline">${p.deadline}</td>
+        <td data-label="Status"><span class="badge-soft" style="background:#e0f2fe;color:#0369a1;">${p.status}</span></td>
+    </tr>`;
+    document.getElementById('overviewProjectsBody').insertAdjacentHTML('afterbegin', row);
+}
+
+/* ============================================================
+   PROJECT STATUS GRID
+============================================================ */
+function renderProjStatusGrid() {
+    const grid = document.getElementById('projStatusGrid');
+    grid.innerHTML = '';
+    document.getElementById('projStatusCount').textContent = 'Total: ' + projectsData.length;
+    const statusColors = {
+        'Active':{'bg':'#e0f2fe','color':'#0369a1'}, 'Planned':{'bg':'#f0fdf4','color':'#16a34a'},
+        'In Progress':{'bg':'#fef9c3','color':'#a16207'}, 'On Hold':{'bg':'#fef3c7','color':'#b45309'},
+        'Completed':{'bg':'#dcfce7','color':'#15803d'}, 'Overdue':{'bg':'#fee2e2','color':'#dc2626'}
+    };
+    projectsData.forEach((p, idx) => {
+        const pct = p.progress || 0;
+        const sc  = statusColors[p.status] || { bg:'#f1f5f9', color:'#475569' };
+        const col = document.createElement('div');
+        col.className = 'col-md-4';
+        col.innerHTML = `<div class="proj-status-card" onclick="openProjDetail(${idx})">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div><h6 class="fw-bold mb-1">${p.name}</h6><small class="text-muted">${p.code}</small></div>
+                <span class="badge rounded-pill" style="background:${sc.bg};color:${sc.color};font-size:11px;">${p.status}</span>
+            </div>
+            <div class="progress mb-2" style="height:8px;border-radius:8px;"><div class="progress-bar bg-primary" style="width:${pct}%"></div></div>
+            <div class="d-flex justify-content-between small fw-bold mb-2"><span class="text-muted">Completion</span><span class="text-primary">${pct}%</span></div>
+            <div class="d-flex justify-content-between small text-muted">
+                <span><i class="bi bi-calendar-event me-1"></i>${p.deadline}</span>
+                <span><i class="bi bi-lightning me-1"></i>${p.priority || '—'}</span>
+            </div>
+        </div>`;
+        grid.appendChild(col);
+    });
+    closeProjDetail();
+}
+
+function openProjDetail(idx) {
+    currentProjDetailIndex = idx;
+    const p = projectsData[idx];
+    document.getElementById('detailProjName').textContent   = p.name;
+    document.getElementById('detailProjCode').textContent   = p.code;
+    document.getElementById('detailClient').textContent     = p.client || '—';
+    document.getElementById('detailAssigned').textContent   = p.assigned;
+    document.getElementById('detailDeadline').textContent   = p.deadline;
+    document.getElementById('detailHours').textContent      = p.hours || '—';
+    document.getElementById('detailPriority').textContent   = p.priority || '—';
+    document.getElementById('detailStatus').textContent     = p.status;
+    document.getElementById('detailDesc').textContent       = p.desc || '—';
+    const pct = p.progress || 0;
+    document.getElementById('detailProgressBar').style.width = pct + '%';
+    document.getElementById('detailProgressVal').textContent = pct + '%';
+    const filesEl = document.getElementById('detailFiles');
+    filesEl.innerHTML = p.files && p.files.length
+        ? p.files.map(f => `<span class="file-chip"><i class="bi bi-file-earmark me-1"></i>${f}</span>`).join('')
+        : '—';
+    document.getElementById('projDetailPanel').classList.add('active');
+    document.getElementById('projDetailPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function closeProjDetail() {
+    document.getElementById('projDetailPanel').classList.remove('active');
+    currentProjDetailIndex = -1;
+}
+
+function editCurrentProject() {
+    if (currentProjDetailIndex < 0) return;
+    const p = projectsData[currentProjDetailIndex];
+    document.getElementById('editProjId').value        = p.id;
+    document.getElementById('editProjName').value      = p.name;
+    document.getElementById('editProjCode').value      = p.code;
+    document.getElementById('editProjClient').value    = p.client || '';
+    document.getElementById('editProjPriority').value  = p.priority;
+    document.getElementById('editProjStatus').value    = p.status;
+    document.getElementById('editProjProgress').value  = p.progress || 0;
+    document.getElementById('editProjAssigned').value  = fromDisplayDate(p.assigned);
+    document.getElementById('editProjDeadline').value  = fromDisplayDate(p.deadline);
+    document.getElementById('editProjDesc').value      = p.desc || '';
+    new bootstrap.Modal(document.getElementById('editProjectModal')).show();
+}
+
+async function deleteCurrentProject() {
+    if (currentProjDetailIndex < 0) return;
+    const p = projectsData[currentProjDetailIndex];
+    const r = await Swal.fire({title:'Delete Project?', text: p.name, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete'});
+    if (r.isConfirmed) {
+        const data = await Projects.delete(p.id);
+        if (data.success) {
+            projectsData.splice(currentProjDetailIndex, 1);
+            closeProjDetail();
+            renderProjStatusGrid();
+            refreshOverviewTable();
+            Swal.fire({icon:'success', title:'Deleted!', timer:1200, showConfirmButton:false});
+        } else { Swal.fire({icon:'error', title: data.error}); }
+    }
+}
+
+
+
+/* ============================================================
+   EMPLOYEE GRID
+============================================================ */
+function renderEmployeeGrid() {
+    const grid   = document.getElementById('employeeGrid');
+    grid.innerHTML = '';
+    const colors = ['#6366f1','#f59e0b','#22c55e','#3b82f6','#ec4899','#a855f7'];
+    const filtered = currentRoleFilter === 'all' ? employeesData : employeesData.filter(e => {
+        const r = (e.role || '').toLowerCase();
+        if (currentRoleFilter === 'tl') return r === 'tl' || r === 'team leader' || r === 'teamleader';
+        if (currentRoleFilter === 'developer') return r === 'developer' || r.includes('developer');
+        if (currentRoleFilter === 'pm') return r === 'pm' || r === 'project manager';
+        return true;
+    });
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="bi bi-people" style="font-size:2rem;"></i><p class="mt-2">No employees found.</p></div>';
+        return;
+    }
+    filtered.forEach((emp, idx) => {
+        const col     = document.createElement('div');
+        col.className = 'col-md-4';
+        const color   = colors[idx % colors.length];
+        const initials = emp.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const origIdx = employeesData.indexOf(emp);
+        col.innerHTML = `<div class="emp-card" onclick="openEmpDetail(${origIdx})">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width:50px;height:50px;background:${color};font-size:16px;">${initials}</div>
+                <div><h6 class="mb-0 fw-bold">${emp.name}</h6><small class="text-muted">${emp.role}</small></div>
+            </div>
+            <div class="small text-muted">
+                <p class="mb-1"><i class="bi bi-envelope me-2 text-primary"></i>${emp.officialEmail}</p>
+                <p class="mb-1"><i class="bi bi-phone me-2 text-primary"></i>${emp.mobile || '—'}</p>
+                <p class="mb-0"><i class="bi bi-building me-2 text-primary"></i>${emp.dept}</p>
+            </div>
+            <div class="mt-2"><span class="badge bg-light text-dark border" style="font-size:10px;">${emp.emp_id}</span></div>
+        </div>`;
+        grid.appendChild(col);
+    });
+}
+
+function openEmpDetail(idx) {
+    currentEmpIndex = idx;
+    const emp = employeesData[idx];
+    document.getElementById('empDetailContent').innerHTML = `
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Employee ID</small><span class="fw-bold">${emp.emp_id}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Full Name</small><span class="fw-bold">${emp.name}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Role</small><span class="fw-bold">${emp.role}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Official Email</small><span class="fw-bold">${emp.officialEmail}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Personal Email</small><span class="fw-bold">${emp.personalEmail || '—'}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Mobile</small><span class="fw-bold">${emp.mobile || '—'}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Department</small><span class="fw-bold">${emp.dept}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Location</small><span class="fw-bold">${emp.location || '—'}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Date of Joining</small><span class="fw-bold">${emp.doj}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Skills</small><span class="fw-bold">${emp.skills || '—'}</span></div></div>`;
+    document.getElementById('empDetailPanel').classList.add('active');
+    document.getElementById('empDetailPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function closeEmpDetail() {
+    document.getElementById('empDetailPanel').classList.remove('active');
+    currentEmpIndex = -1;
+}
+
+function editCurrentEmp() {
+    if (currentEmpIndex < 0) return;
+    const emp = employeesData[currentEmpIndex];
+    document.getElementById('editEmpDbId').value          = emp.id;
+    document.getElementById('editEmpIndex').value         = currentEmpIndex;
+    document.getElementById('editEmpId').value            = emp.emp_id;
+    document.getElementById('editEmpName').value          = emp.name;
+    document.getElementById('editEmpOfficialEmail').value = emp.officialEmail;
+    document.getElementById('editEmpPersonalEmail').value = emp.personalEmail || '';
+    document.getElementById('editEmpMobile').value        = emp.mobile || '';
+    document.getElementById('editEmpDept').value          = emp.dept;
+    document.getElementById('editEmpRole').value          = emp.role;
+    document.getElementById('editEmpDoj').value           = fromDisplayDate(emp.doj);
+    document.getElementById('editEmpLocation').value      = emp.location || '';
+    document.getElementById('editEmpSkills').value        = emp.skills || '';
+    new bootstrap.Modal(document.getElementById('editEmployeeModal')).show();
+}
+
+async function deleteCurrentEmp() {
+    if (currentEmpIndex < 0) return;
+    const emp = employeesData[currentEmpIndex];
+    const r = await Swal.fire({ title:'Delete Employee?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete' });
+    if (r.isConfirmed) {
+        const data = await API.del('/api/users/' + emp.id);
+        if (data.success) {
+            employeesData.splice(currentEmpIndex, 1);
+            closeEmpDetail();
+            renderEmployeeGrid();
+            toast('success','Deleted!');
+        }
+    }
+}
+
+/* ============================================================
+   PM TABLE
+============================================================ */
+function renderPmTable() {
+    const body = document.getElementById('pmListBody');
+    if (!body) return;
+    body.innerHTML = '';
+    pmData.forEach(pm => {
+        const tr = document.createElement('tr');
+        renderPmRowInPlace(tr, pm);
+        body.appendChild(tr);
+    });
+    updatePmCount();
+}
+function renderPmRowInPlace(row, pm) {
+    const initials = pm.name.charAt(0).toUpperCase();
+    row.innerHTML = `
+        <td data-label="Emp ID"><span class="badge bg-secondary">${pm.empId}</span></td>
+        <td data-label="Name"><div class="d-flex align-items-center"><div class="rounded-circle text-white d-flex align-items-center justify-content-center me-2" style="width:35px;height:35px;background:#6366f1;">${initials}</div><strong>${pm.name}</strong></div></td>
+        <td data-label="Official Email">${pm.email}</td>
+        <td data-label="Personal Email">${pm.personalEmail || '—'}</td>
+        <td data-label="Mobile">${pm.mobile || '—'}</td>
+        <td data-label="Exp">${pm.exp} Years</td>
+        <td data-label="Domain"><span class="badge bg-info text-dark">${pm.domain}</span></td>
+        <td data-label="Status"><span class="badge bg-success">Active</span></td>
+        <td>
+            <button class="btn btn-sm btn-outline-success me-1" data-action="creds-pm" title="Show Login Credentials"><i class="bi bi-key"></i></button>
+            <button class="btn btn-sm btn-outline-primary me-1" data-action="edit-pm" data-id="${pm.id}"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger" data-action="delete-pm" data-id="${pm.id}"><i class="bi bi-trash"></i></button>
+        </td>`;
+}
+function updatePmCount() {
+    const c = pmData.length;
+    const badge = document.getElementById('pmCountBadge'); if(badge) badge.textContent = 'Total: ' + c;
+    const total = document.getElementById('pmTotalText');  if(total) total.textContent  = c;
+}
+
+/* ============================================================
+   ASSIGN PM DROPDOWNS
+============================================================ */
+function refreshAssignProjectDropdown() {
+    const sel = document.getElementById('assignProjectSelect');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="" disabled>-- Choose Project --</option>';
+    projectsData.forEach((p, i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = p.code + ' — ' + p.name;
+        sel.appendChild(opt);
+    });
+    if (cur) sel.value = cur;
+}
+function refreshAssignPmDropdown() {
+    const sel = document.getElementById('assignPmSelect');
+    sel.innerHTML = '<option value="" disabled>Choose PM...</option>';
+    pmData.forEach((pm) => {
+        const opt = document.createElement('option');
+        opt.value = pm.id; opt.textContent = pm.name + ' (' + pm.domain + ')';
+        sel.appendChild(opt);
+    });
+}
+function loadAssignProjectDetails() {
+    const idx = parseInt(document.getElementById('assignProjectSelect').value);
+    const p   = projectsData[idx];
+    if (!p) return;
+    document.getElementById('assignProjectPreview').style.display = 'block';
+    document.getElementById('ap-code').textContent     = p.code;
+    document.getElementById('ap-client').textContent   = p.client || '—';
+    document.getElementById('ap-assigned').textContent = p.assigned;
+    document.getElementById('ap-deadline').textContent = p.deadline;
+    document.getElementById('ap-hours').textContent    = p.hours || '—';
+    document.getElementById('ap-priority').textContent = p.priority || '—';
+    document.getElementById('ap-status').textContent   = p.status;
+    document.getElementById('ap-desc').textContent     = p.desc || '—';
+    document.getElementById('ap-files').innerHTML      = p.files && p.files.length
+        ? p.files.map(f => `<span class="file-chip"><i class="bi bi-file-earmark me-1"></i>${f}</span>`).join('')
+        : '—';
+}
+
+/* ============================================================
+   DEPARTMENTS TABLE
+============================================================ */
+function renderDeptTable() {
+    const body = document.getElementById('deptBody');
+    body.innerHTML = '';
+    deptData.forEach(d => {
+        body.insertAdjacentHTML('beforeend', `<tr>
+            <td data-label="Dept">${d.name}</td>
+            <td data-label="HOD">${d.hod || '—'}</td>
+            <td data-label="Members">${d.members}</td>
+            <td><button class="btn btn-sm btn-outline-danger border-0" onclick="deleteDept(${d.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`);
+    });
+}
+async function deleteDept(id) {
+    const r = await Swal.fire({ title:'Delete Department?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete' });
+    if (r.isConfirmed) {
+        const data = await API.del('/api/departments/' + id);
+        if (data.success) {
+            deptData = deptData.filter(d => d.id !== id);
+            renderDeptTable();
+            toast('success','Department deleted!');
+        }
+    }
+}
+
+/* ============================================================
+   PROFILE
+============================================================ */
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        document.getElementById('profilePicProfile').src = e.target.result;
+        document.getElementById('profilePicHeader').src  = e.target.result;
+        // Upload to backend
+        const fd = new FormData();
+        fd.append('photo', file);
+        const r = await fetch(BASE+'/api/users/'+session_user_id+'/photo', { method:'POST', credentials:'include', body: fd });
+        await r.json();
+    };
+    reader.readAsDataURL(file);
+}
+
+async function saveProfileInfo() {
+    const name  = document.getElementById('profileName').value.trim();
+    if (!name) { Swal.fire({ icon:'warning', title:'Name cannot be empty' }); return; }
+    const data = await API.put('/api/auth/me', {
+        full_name:      name,
+        official_email: document.getElementById('profileEmail').value,
+        mobile:         document.getElementById('profileMobile').value,
+        location:       document.getElementById('profileLocation').value
+    });
+    if (data.success) {
+        document.getElementById('profileDisplayName').textContent = name;
+        document.getElementById('topbarName').textContent         = name;
+        bootstrap.Modal.getInstance(document.getElementById('editProfileModal'))?.hide();
+        toast('success','Profile Updated!');
+    }
+}
+
+/* ============================================================
+   CHANGE PASSWORD  —  WIRED TO BACKEND
+============================================================ */
+function togglePass(id) {
+    const inp = document.getElementById(id);
+    const eye = document.getElementById('eye-' + id);
+    if (!inp || !eye) return;
+    if (inp.type === 'password') { inp.type = 'text'; eye.classList.replace('bi-eye','bi-eye-slash'); }
+    else { inp.type = 'password'; eye.classList.replace('bi-eye-slash','bi-eye'); }
+}
+
+async function submitPasswordChange() {
+    const current = document.getElementById('currPass').value;
+    const naya    = document.getElementById('newPass').value;
+    const conf    = document.getElementById('confPass').value;
+    if (!current || !naya || !conf) { Swal.fire({ icon:'error', title:'All fields required!' }); return; }
+    if (naya !== conf)               { Swal.fire({ icon:'warning', title:'Passwords do not match!' }); return; }
+    const data = await API.put('/api/auth/change-password', { current_password: current, new_password: naya });
+    if (data.success) {
+        toast('success','Password Updated!');
+        document.getElementById('currPass').value = '';
+        document.getElementById('newPass').value  = '';
+        document.getElementById('confPass').value = '';
+    } else {
+        Swal.fire({ icon:'error', title:'Error', text: data.error });
+    }
+}
+
+/* ============================================================
+   FORGOT PASSWORD (profile page) — WIRED TO BACKEND
+============================================================ */
+function showForgotFlow(e) {
+    if (e) e.preventDefault();
+    document.getElementById('cpView').style.display = 'none';
+    document.getElementById('fpView').style.display = 'block';
+    resetFpSteps();
+}
+function hideForgotFlow() {
+    document.getElementById('fpView').style.display = 'none';
+    document.getElementById('cpView').style.display = 'block';
+}
+function resetFpSteps() {
+    fpSelectedMethod = null; fpGeneratedOtp = null;
+    document.getElementById('fpStep1').style.display = 'block';
+    document.getElementById('fpStep2').style.display = 'none';
+    document.getElementById('fpStep3').style.display = 'none';
+    document.querySelectorAll('.fp-method-card').forEach(c => { c.style.borderColor = '#e2e8f0'; c.style.background = ''; });
+}
+function selectFpMethod(method) {
+    fpSelectedMethod = method;
+    document.querySelectorAll('.fp-method-card').forEach(c => { c.style.borderColor = '#e2e8f0'; c.style.background = ''; });
+    const card = document.getElementById('fpMethod' + (method === 'email' ? 'Email' : 'Phone'));
+    card.style.borderColor = '#6366f1'; card.style.background = '#f0f0ff';
+}
+async function sendOtp() {
+    if (!fpSelectedMethod) { Swal.fire({ icon:'warning', title:'Select a method first!' }); return; }
+    const value = fpSelectedMethod === 'email'
+        ? 'purvaadmin@srujaninfotech.com'
+        : '+91 77599 49543';
+    const data = await API.post('/api/auth/send-otp', { method: fpSelectedMethod, value });
+    if (data.success) {
+        fpGeneratedOtp = data.otp;
+        document.getElementById('fpOtpSentMsg').textContent = 'OTP sent via ' + fpSelectedMethod;
+        document.getElementById('fpStep1').style.display = 'none';
+        document.getElementById('fpStep2').style.display = 'block';
+        document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
+        document.querySelectorAll('.otp-digit')[0]?.focus();
+        Swal.fire({ icon:'info', title:'OTP (Demo)', html:`<b style="font-size:28px;letter-spacing:6px;color:#6366f1;">${data.otp}</b>`, confirmButtonColor:'#0f172a' });
+    }
+}
+function otpNext(input, index) {
+    input.value = input.value.replace(/[^0-9]/g,'');
+    if (input.value.length === 1) {
+        const next = document.querySelectorAll('.otp-digit')[index + 1];
+        if (next) next.focus();
+    }
+}
+async function verifyOtp() {
+    const entered = Array.from(document.querySelectorAll('.otp-digit')).map(i => i.value).join('');
+    if (entered.length < 6) { Swal.fire({ icon:'warning', title:'Enter complete 6-digit OTP' }); return; }
+    const data = await API.post('/api/auth/verify-otp', { otp: entered });
+    if (data.success) {
+        document.getElementById('fpStep2').style.display = 'none';
+        document.getElementById('fpStep3').style.display = 'block';
+    } else {
+        Swal.fire({ icon:'error', title:'Invalid OTP', text: data.error });
+    }
+}
+async function resendOtp(e) {
+    e.preventDefault();
+    const value = fpSelectedMethod === 'email' ? 'purvaadmin@srujaninfotech.com' : '+91 77599 49543';
+    const data  = await API.post('/api/auth/send-otp', { method: fpSelectedMethod, value });
+    if (data.success) {
+        fpGeneratedOtp = data.otp;
+        document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
+        document.querySelectorAll('.otp-digit')[0]?.focus();
+        Swal.fire({ icon:'success', title:'OTP Resent!', html:`<b style="font-size:28px;letter-spacing:6px;color:#6366f1;">${data.otp}</b>`, timer:3000, confirmButtonColor:'#0f172a' });
+    }
+}
+async function resetPassword() {
+    const np = document.getElementById('fpNewPass').value;
+    const cp = document.getElementById('fpConfPass').value;
+    if (!np || !cp) { Swal.fire({ icon:'error', title:'Both fields required!' }); return; }
+    if (np !== cp)  { Swal.fire({ icon:'warning', title:'Passwords do not match!' }); return; }
+    const data = await API.post('/api/auth/reset-password', { new_password: np });
+    if (data.success) {
+        Swal.fire({ icon:'success', title:'Password Reset!', timer:2000, showConfirmButton:false }).then(() => {
+            hideForgotFlow();
+            document.getElementById('fpNewPass').value  = '';
+            document.getElementById('fpConfPass').value = '';
+        });
+    } else {
+        Swal.fire({ icon:'error', title:'Error', text: data.error });
+    }
+}
+function resetFpFlow() { resetFpSteps(); }
+
+/* ============================================================
+   DOMContentLoaded  —  LOAD ALL DATA FROM BACKEND
+============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // ── Auth check ──
+    try {
+        const me = await API.get('/api/auth/me');
+        if (!me.success) { window.location.href = '/'; return; }
+        if (me.data.role !== 'superadmin') { window.location.href = '/'; return; }
+    } catch(e) { window.location.href = '/'; return; }
+
+    // ── Load projects ──
+    try {
+        const d = await API.get('/api/projects');
+        if (d.success) {
+            projectsData = d.data;
+            document.getElementById('overviewProjectsBody').innerHTML = '';
+            projectsData.slice(0, 5).forEach(p => appendOverviewRow(p));
+        }
+    } catch(e) {}
+
+    // ── Load employees ──
+    try {
+        const d = await API.get('/api/users');
+        if (d.success) { employeesData = d.data; renderEmployeeGrid(); }
+    } catch(e) {}
+
+    // ── Load PMs ──
+    try {
+        const d = await API.get('/api/users?role_id=2');
+        if (d.success) { pmData = d.data; renderPmTable(); refreshAssignPmDropdown(); }
+    } catch(e) {}
+
+    // ── Load departments ──
+    try {
+        const d = await API.get('/api/departments');
+        if (d.success) { deptData = d.data; renderDeptTable(); }
+    } catch(e) {}
+
+    // ── Load profile ──
+    try {
+        const d = await API.get('/api/auth/me');
+        if (d.success && d.data) {
+            const p = d.data;
+            document.getElementById('topbarName').textContent         = p.full_name || 'Admin';
+            document.getElementById('profileDisplayName').textContent = p.full_name || 'Admin';
+            document.getElementById('profileName').value              = p.full_name || '';
+            document.getElementById('profileEmail').value             = p.official_email || '';
+            document.getElementById('profileMobile').value            = p.mobile || '';
+            document.getElementById('profileLocation').value          = p.location || '';
+            if (p.profile_pic) {
+                document.getElementById('profilePicProfile').src = p.profile_pic;
+                document.getElementById('profilePicHeader').src  = p.profile_pic;
+            }
+        }
+    } catch(e) {}
+
+    refreshAssignProjectDropdown();
+
+    // ── Assign PM modal open ──
+    document.getElementById('assignProjectModal').addEventListener('show.bs.modal', () => {
+        refreshAssignProjectDropdown();
+        refreshAssignPmDropdown();
+        document.getElementById('assignProjectPreview').style.display = 'none';
+    });
+
+    // ── Add PM modal open ──
+    document.getElementById('addPmModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('pmEmpId').value = 'EMP-PM-' + String(pmData.length + 1).padStart(3,'0');
+    });
+
+    // ── Add Employee modal open ──
+    document.getElementById('addEmployeeModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('empId').value = 'EMP-' + String(employeesData.length + 1).padStart(3,'0');
+    });
+
+    // ── PM Form Submit ──
+    document.getElementById('pmForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const payload = {
+            full_name:      document.getElementById('pmName').value,
+            official_email: document.getElementById('pmEmail').value,
+            personal_email: document.getElementById('pmPersonalEmail').value,
+            mobile:         document.getElementById('pmMobile').value,
+            experience_yrs: document.getElementById('pmExp').value,
+            primary_domain: document.getElementById('pmDomain').value,
+            initial_client: document.getElementById('pmClient').value
+        };
+        const data = await API.post('/api/users', payload);
+        if (data.success) {
+            pmData.unshift(data.data);
+            const tr = document.createElement('tr');
+            renderPmRowInPlace(tr, data.data);
+            const plb = document.getElementById('pmListBody'); if(plb) plb.prepend(tr);
+            updatePmCount();
+            refreshAssignPmDropdown();
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('addPmModal')).hide();
+            toast('success','PM Added!');
+        } else { Swal.fire({ icon:'error', title:'Error', text: data.error }); }
+    });
+
+    // ── PM Edit/Delete delegation ──
+    const pmListBodyEl = document.getElementById('pmListBody');
+    if (pmListBodyEl) pmListBodyEl.addEventListener('click', function(e) {
+        const credsBtn = e.target.closest('[data-action="creds-pm"]');
+        const editBtn = e.target.closest('[data-action="edit-pm"]');
+        const delBtn  = e.target.closest('[data-action="delete-pm"]');
+        if (credsBtn) {
+            const id  = credsBtn.closest('tr')?.querySelector('[data-action="edit-pm"]')?.dataset?.id;
+            const pm  = id ? pmData.find(p => p.id === parseInt(id)) : pmData[Array.from(document.getElementById('pmListBody').children).indexOf(credsBtn.closest('tr'))];
+            if (!pm) return;
+            Swal.fire({icon:'info', title:'PM Login Credentials', html:`
+                <div class="text-start p-2">
+                    <p class="mb-2"><b>Login URL:</b> <code>${window.location.origin}</code></p>
+                    <p class="mb-2"><b>Email:</b> <code>${pm.email}</code></p>
+                    <p class="mb-2"><b>Password:</b> <code>${pm.empId}@TMS</code></p>
+                    <p class="mb-0"><b>Role card:</b> Select <code>Project Manager</code></p>
+                </div>`, confirmButtonColor:'#6366f1', confirmButtonText:'Got it!'});
+        }
+        if (editBtn) {
+            const id  = parseInt(editBtn.dataset.id);
+            const pm  = pmData.find(p => p.id === id);
+            if (!pm) return;
+            const idx = pmData.indexOf(pm);
+            document.getElementById('editPmDbId').value           = pm.id;
+            document.getElementById('editPmRowIndex').value       = idx;
+            document.getElementById('editPmEmpId').value          = pm.empId;
+            document.getElementById('editPmName').value           = pm.name;
+            document.getElementById('editPmEmail').value          = pm.email;
+            document.getElementById('editPmPersonalEmail').value  = pm.personalEmail || '';
+            document.getElementById('editPmMobile').value         = pm.mobile || '';
+            document.getElementById('editPmExp').value            = pm.exp;
+            document.getElementById('editPmDomain').value         = pm.domain;
+            new bootstrap.Modal(document.getElementById('editPmModal')).show();
+        }
+        if (delBtn) {
+            const id = parseInt(delBtn.dataset.id);
+            Swal.fire({ title:'Remove PM?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Remove' }).then(async r => {
+                if (r.isConfirmed) {
+                    const data = await API.del('/api/users/' + id);
+                    if (data.success) {
+                        pmData = pmData.filter(p => p.id !== id);
+                        renderPmTable();
+                        refreshAssignPmDropdown();
+                    }
+                }
+            });
+        }
+    });
+
+    // ── PM Edit Submit ──
+    document.getElementById('editPmForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id  = document.getElementById('editPmDbId').value;
+        const idx = parseInt(document.getElementById('editPmRowIndex').value);
+        const data = await API.put('/api/users/' + id, {
+            full_name:      document.getElementById('editPmName').value,
+            official_email: document.getElementById('editPmEmail').value,
+            personal_email: document.getElementById('editPmPersonalEmail').value,
+            mobile:         document.getElementById('editPmMobile').value,
+            experience_yrs: document.getElementById('editPmExp').value,
+            primary_domain: document.getElementById('editPmDomain').value
+        });
+        if (data.success) {
+            pmData[idx] = data.data;
+            renderPmTable();
+            bootstrap.Modal.getInstance(document.getElementById('editPmModal')).hide();
+            toast('success','PM Updated!');
+        }
+    });
+
+    // ── Add Employee Submit ──
+    document.getElementById('addEmployeeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Adding...';
+        const deptVal = document.getElementById('empDept').value;
+        const payload = {
+            full_name:      document.getElementById('empName').value.trim(),
+            official_email: document.getElementById('empOfficialEmail').value.trim(),
+            personal_email: document.getElementById('empPersonalEmail').value.trim(),
+            mobile:         document.getElementById('empMobile').value.trim(),
+            department:     (deptVal === 'Select Dept' || deptVal === '') ? null : deptVal,
+            role:           document.getElementById('empRole').value,
+            doj:            document.getElementById('empDoj').value,
+            work_location:  document.getElementById('empLocation').value.trim(),
+            skills:         document.getElementById('empSkills').value.trim()
+        };
+        const data = await API.post('/api/users', payload);
+        btn.disabled = false; btn.textContent = 'Add to System';
+        if (data.success) {
+            employeesData.unshift(data.data);
+            renderEmployeeGrid();
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide();
+            Swal.fire({
+                icon: 'success',
+                title: '✅ Employee Added!',
+                html: `<b>Name:</b> ${data.data.name}<br><b>Emp ID:</b> ${data.data.emp_id}<br><b>Temp Password:</b> <code>${data.temp_password || 'TMS@' + data.data.emp_id}</code>`,
+                confirmButtonColor: '#6366f1'
+            });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Could Not Add Employee', text: data.error || 'Unknown error. Check Flask console.' });
+        }
+    });
+
+    // ── Edit Employee Submit ──
+    document.getElementById('editEmployeeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Saving...';
+        const id  = document.getElementById('editEmpDbId').value;
+        const idx = parseInt(document.getElementById('editEmpIndex').value);
+        const deptVal = document.getElementById('editEmpDept').value;
+        const data = await API.put('/api/users/' + id, {
+            full_name:      document.getElementById('editEmpName').value.trim(),
+            official_email: document.getElementById('editEmpOfficialEmail').value.trim(),
+            personal_email: document.getElementById('editEmpPersonalEmail').value.trim(),
+            mobile:         document.getElementById('editEmpMobile').value.trim(),
+            department:     (deptVal === 'Select Dept' || deptVal === '') ? null : deptVal,
+            role:           document.getElementById('editEmpRole').value,
+            doj:            document.getElementById('editEmpDoj').value,
+            work_location:  document.getElementById('editEmpLocation').value.trim(),
+            skills:         document.getElementById('editEmpSkills').value.trim()
+        });
+        btn.disabled = false; btn.textContent = 'Save Changes';
+        if (data.success) {
+            employeesData[idx] = data.data;
+            renderEmployeeGrid();
+            bootstrap.Modal.getInstance(document.getElementById('editEmployeeModal')).hide();
+            closeEmpDetail();
+            toast('success','Employee Updated!');
+        } else {
+            Swal.fire({ icon: 'error', title: 'Update Failed', text: data.error || 'Unknown error' });
+        }
+    });
+
+    // ── Dept Form Submit ──
+    document.getElementById('createDeptForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = await API.post('/api/departments', {
+            dept_name:   document.getElementById('deptName').value.trim(),
+            hod_name:    document.getElementById('deptHOD').value,
+            description: document.getElementById('deptDesc').value
+        });
+        if (data.success) {
+            deptData.unshift(data.data);
+            renderDeptTable();
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('createDeptModal')).hide();
+            toast('success','Department Created!');
+        }
+    });
+
+    // ── Assign Form Submit ──
+    document.getElementById('assignForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const projIdx = parseInt(document.getElementById('assignProjectSelect').value);
+        const pmId    = document.getElementById('assignPmSelect').value;
+        const proj    = projectsData[projIdx];
+        if (!proj || !pmId) { Swal.fire({ icon:'warning', title:'Select both project and PM' }); return; }
+        const data = await API.post('/api/projects/assign-pm', { project_id: proj.id, pm_id: pmId });
+        if (data.success) {
+            // Refresh projects from backend so assigned_pm name shows correctly
+            const fresh = await API.get('/api/projects');
+            if (fresh.success) {
+                projectsData = fresh.data;
+                renderProjStatusGrid();
+                refreshAssignProjectDropdown();
+                // refresh overview table
+                const tbody = document.getElementById('overviewProjectsBody');
+                if (tbody) { tbody.innerHTML = ''; projectsData.slice(0,5).forEach(p => appendOverviewRow(p)); }
+            }
+            Swal.fire({ icon:'success', title:'Project Assigned!', text:'PM assigned successfully.', timer:2000, showConfirmButton:false });
+            bootstrap.Modal.getInstance(document.getElementById('assignProjectModal')).hide();
+        } else {
+            Swal.fire({ icon:'error', title:'Failed', text: data.error || 'Could not assign PM' });
+        }
+    });
+
+    // ── Role Form Submit ──
+    document.getElementById('createRoleForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = document.getElementById('roleNameInput').value.trim();
+        if (!name) return;
+        const data = await API.post('/api/roles', {
+            role_name:    name,
+            access_level: document.getElementById('roleAccessLevel').value,
+            description:  document.getElementById('roleDesc').value
+        });
+        if (data.success) {
+            const col = document.createElement('div');
+            col.className = 'col-md-3';
+            col.innerHTML = `<div class="card p-3 border-0 shadow-sm text-center h-100" style="border-radius:15px;"><div class="glass-icon mx-auto mb-2" style="width:40px;height:40px;color:#6366f1;"><i class="bi bi-person-workspace"></i></div><div class="fw-bold">${name}</div><div class="small text-muted" style="font-size:11px;">${data.data.access_level}</div></div>`;
+            document.getElementById('rolesGrid').appendChild(col);
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('createRoleModal')).hide();
+            toast('success','Role Created!');
+        }
+    });
+
+});
+</script>
+</body>
+</html>

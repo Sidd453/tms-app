@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Team Lead – Task Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- SweetAlert2 for alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dark-bg: #0a0f1e;
+            --sidebar-w: 240px;
+            --tl-green: #22c55e;
+            --tl-blue: #0ea5e9;
+            --tl-gradient: linear-gradient(135deg, #22c55e, #0ea5e9);
+            --card-radius: 20px;
+            --surface: #ffffff;
+            --bg: #f0f4f8;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            margin: 0;
+        }
+
+        /* ── SIDEBAR ── */
+        .tl-sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--dark-bg);
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            color: #e5e7eb;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.25);
+            z-index: 1000;
+            transition: transform 0.35s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .tl-logo {
+            border-radius: 14px;
+            background: var(--tl-gradient);
+            padding: 14px 16px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 28px;
+            color: white;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.25);
+        }
+
+        .nav-section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #475569;
+            padding: 0 12px;
+            margin: 12px 0 6px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        .nav-item i {
+            font-size: 16px;
+            min-width: 18px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #e2e8f0;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(14, 165, 233, 0.12));
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.25);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--tl-gradient);
+        }
+
+        /* ── HAMBURGER ── */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 1100;
+            background: var(--dark-bg);
+            border: none;
+            border-radius: 10px;
+            width: 42px;
+            height: 42px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 999;
+            backdrop-filter: blur(3px);
+        }
+
+        /* ── MAIN ── */
+        .tl-main {
+            margin-left: var(--sidebar-w);
+            padding: 28px 30px;
+            min-height: 100vh;
+        }
+
+        /* ── TOPBAR ── */
+        .tl-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            background: var(--surface);
+            border-radius: var(--card-radius);
+            padding: 16px 22px;
+            box-shadow: 0 2px 16px rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        .tl-topbar-title h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .tl-topbar-title p {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tl-topbar-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .tl-topbar-profile-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .tl-topbar-profile-text .name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tl-topbar-profile-text .role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── STAT CARDS ── */
+        .tl-stat-card {
+            border-radius: var(--card-radius);
+            background: var(--surface);
+            padding: 18px 20px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tl-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+            border-color: var(--tl-green);
+        }
+
+        .tl-stat-card .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        /* ── ACTION CARDS ── */
+        .action-card {
+            border-radius: var(--card-radius);
+            padding: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+            transition: all 0.35s ease;
+            height: 100%;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .ac-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 60%, #93c5fd 100%);
+        }
+
+        .ac-red {
+            background: linear-gradient(135deg, #fee2e2, #fca5a5);
+        }
+
+        .ac-orange {
+            background: linear-gradient(135deg, #ffedd5, #fb923c);
+        }
+
+        .ac-yellow {
+            background: linear-gradient(135deg, #fef9c3, #fde047);
+        }
+
+        .ac-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.08);
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+
+        /* ── WHITE CARD ── */
+        .tl-card-white {
+            border-radius: var(--card-radius);
+            background: var(--surface);
+            padding: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        /* ── TABLE ── */
+        .table {
+            font-size: 13.5px;
+        }
+
+        .table thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-bottom: 2px solid var(--border);
+            padding: 10px 12px;
+            background: #f8fafc;
+        }
+
+        .table tbody td {
+            padding: 13px 12px;
+            vertical-align: middle;
+            border-color: var(--border);
+        }
+
+        .table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* ── BADGES ── */
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+        }
+
+        /* ── BTN GROUP ── */
+        .btn-group .btn {
+            border-radius: 8px !important;
+            margin: 0 1px;
+        }
+
+        /* ── TEAM MEMBER CARD ── */
+        .team-member-card {
+            background: var(--surface);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .team-member-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.09);
+            border-color: var(--tl-green);
+        }
+
+        .member-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* ── PROFILE ── */
+        .profile-header {
+            background: var(--tl-gradient);
+            border-radius: var(--card-radius) var(--card-radius) 0 0;
+            padding: 32px 24px 24px;
+            color: white;
+            text-align: center;
+        }
+
+        /* ── CHIP UI ── */
+        .team-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .team-chip:hover {
+            background: #e2e8f0;
+        }
+
+        .team-chip.selected {
+            background: #dcfce7;
+            border-color: var(--tl-green);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+        }
+
+        .team-chip .avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        /* ── OTP ── */
+        .otp-input {
+            width: 44px;
+            height: 50px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            border-radius: 12px;
+        }
+
+        /* ── SECURITY ── */
+        .security-pill {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .animate-card {
+            opacity: 0;
+            animation: cardEntrance 0.6s ease-out forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.08s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.16s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.24s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.32s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.40s;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .dashboard-section {
+            display: none;
+        }
+
+        /* ── MOBILE NAV BAR (bottom) ── */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--dark-bg);
+            z-index: 1050;
+            padding: 10px 0 14px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .mob-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 10px;
+            transition: color 0.2s;
+        }
+
+        .mob-nav-item i {
+            font-size: 20px;
+        }
+
+        .mob-nav-item.active,
+        .mob-nav-item:hover {
+            color: var(--tl-green);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .tl-sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
+
+            .tl-sidebar.open {
+                transform: translateX(0);
+                animation: none;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .tl-main {
+                margin-left: 0;
+                padding: 72px 14px 90px;
+            }
+
+            .tl-topbar {
+                padding: 12px 14px;
+                border-radius: 14px;
+            }
+
+            .tl-topbar-title h2 {
+                font-size: 16px;
+            }
+
+            .tl-topbar-profile-text {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            .tl-card-white {
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            .action-card {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .team-member-card {
+                padding: 14px;
+            }
+
+            /* Mobile table → card style */
+            .table thead {
+                display: none;
+            }
+
+            .table,
+            .table tbody,
+            .table tr,
+            .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table tr {
+                margin-bottom: 12px;
+                border: 1px solid var(--border) !important;
+                border-radius: 14px;
+                background: #fff;
+                padding: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            }
+
+            .table td {
+                text-align: right;
+                padding: 7px 12px;
+                position: relative;
+                border: none !important;
+                font-size: 13px;
+            }
+
+            .table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 12px;
+                width: 45%;
+                font-weight: 700;
+                text-align: left;
+                color: var(--text-muted);
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .btn-group {
+                display: flex;
+                gap: 4px;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tl-main {
+                padding: 68px 10px 85px;
+            }
+
+            .otp-input {
+                width: 38px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HAMBURGER -->
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+        <i class="bi bi-list" id="hamburgerIcon"></i>
+    </button>
+
+    <!-- OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <div class="tl-sidebar" id="tlSidebar">
+        <div class="tl-logo">🚀 TL DASHBOARD</div>
+        <div class="nav-section-label">Main</div>
+        <a href="#" class="nav-item active" onclick="showSection('overview', event)">
+            <i class="bi bi-speedometer2"></i> Overview
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('tasks', event)">
+            <i class="bi bi-code-square"></i> Dev Tasks
+        </a>
+        <a href="#" class="nav-item position-relative" onclick="showSection('pm-tasks', event)" id="navPmTasks">
+            <i class="bi bi-inbox-fill text-warning"></i> PM Tasks
+            <span class="badge bg-danger rounded-pill ms-auto" style="font-size:9px;">3</span>
+        </a>
+        <div class="nav-section-label">People</div>
+        <a href="#" class="nav-item" onclick="showSection('team', event)">
+            <i class="bi bi-people"></i> My Team
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('profile', event)">
+            <i class="bi bi-person-circle"></i> Profile
+        </a>
+
+        <div class="mt-auto">
+            <a href="login page.html" class="nav-item text-danger">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="tl-main">
+
+        <!-- TOPBAR WITH PROFILE -->
+        <div class="tl-topbar">
+            <div class="tl-topbar-title">
+                <h2 class="fw-bold mb-1">Execution Hub</h2>
+                <p class="text-muted small mb-0">Manage your team and deploy assignments in one click.</p>
+            </div>
+
+            <div class="tl-topbar-profile" onclick="showSection('profile', event)">
+                <div class="tl-topbar-profile-text text-end">
+                    <span class="name">Team Lead</span>
+                    <span class="role">Team Leader</span>
+                </div>
+                <img id="tlProfileHeader"
+                    src="https://ui-avatars.com/api/?name=Team+Lead&background=22c55e&color=fff"
+                    class="rounded-circle border border-2 border-success" width="40" height="40"
+                    alt="Team Lead Profile">
+            </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div id="section-overview" class="dashboard-section" style="display:block;">
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="action-card ac-blue h-100 p-4 shadow animate-card delay-1">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="ac-icon text-primary bg-white shadow-sm">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <span class="badge bg-white text-primary rounded-pill px-3 shadow-sm">Multi-Assignment Flow</span>
+                        </div>
+                        <h4 class="fw-bold text-dark">Create Task / Assign Developers</h4>
+                        <p class="text-dark opacity-75 mb-4">
+                            Configure the task and select the right developers in a single flow.
+                        </p>
+                        <button class="btn btn-dark rounded-pill px-5 py-2 fw-bold"
+                            data-bs-toggle="modal" data-bs-target="#smartTaskModal">
+                            <i class="bi bi-plus-circle me-2"></i> Start Assignment
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="tl-card-white animate-card delay-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Current Sprint Monitor</h5>
+                    <div class="position-relative" style="min-width:200px;">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="sprintSearch" class="form-control form-control-sm bg-light border-0 ps-4" placeholder="Search tasks..." oninput="searchTable(this.value,'sprintTableBody')">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead class="bg-light">
+                            <tr class="small text-muted">
+                                <th>TASK</th>
+                                <th>DEVELOPER</th>
+                                <th>DEADLINE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sprintTableBody"><tr><td colspan="4" class="text-center text-muted py-4">Loading tasks...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PM ASSIGNED TASKS SECTION -->
+        <div id="section-pm-tasks" class="dashboard-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-4 animate-card delay-1 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1">📋 PM Assigned Tasks</h3>
+                    <p class="text-muted small mb-0">Tasks assigned directly to you by the Project Manager.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="pmTaskSearch" class="form-control form-control-sm bg-white border ps-4" placeholder="Search tasks..." oninput="searchPmTasks(this.value)">
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2" style="background:var(--tl-gradient);font-size:12px;">3 New</span>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Card 1 -->
+                
+
+                <!-- Card 2 -->
+            </div>
+        </div>
+
+        <!-- TASKS SECTION -->
+        <div id="section-tasks" class="dashboard-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-4 animate-card delay-1 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-0">Developer Task List</h3>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="devTaskSearch" class="form-control form-control-sm bg-white border ps-4" placeholder="Search tasks..." oninput="searchTable(this.value,'devTaskTableBody')">
+                    </div>
+                    <span class="badge bg-dark rounded-pill px-3">Total: 3</span>
+                </div>
+            </div>
+
+            <div class="tl-card-white animate-card delay-2">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="bg-light">
+                            <tr class="small text-muted">
+                                <th>Task</th>
+                                <th>Developer</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="devTaskTableBody"><tr><td colspan="5" class="text-center text-muted py-4">Loading tasks...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEAM SECTION -->
+        <div id="section-team" class="dashboard-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold animate-card delay-1 mb-1">My Team Members</h3>
+                    <p class="text-muted animate-card delay-2 small mb-0">Track current workload across your team.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="teamSearch" class="form-control form-control-sm bg-white border ps-4" placeholder="Search members..." oninput="searchTeam(this.value)">
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2 animate-card delay-1" style="background:var(--tl-gradient);font-size:12px;">4 Active</span>
+                </div>
+            </div>
+
+            <div class="row g-3" id="teamMembersGrid">
+                <div class="col-12 text-center text-muted py-4">Loading team members...</div>
+            </div>
+        </div>
+        <!-- PROFILE SECTION -->
+        <div id="section-profile" class="dashboard-section" style="display:none;">
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1 animate-card delay-1">My Profile</h2>
+                <p class="text-muted small animate-card delay-2">Manage your account settings and personal information.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 text-center p-4 h-100 animate-card delay-2">
+                        <div class="mx-auto position-relative mb-3" style="width:120px; height:120px;">
+                            <img id="tlProfilePhoto"
+                                src="https://ui-avatars.com/api/?name=Team+Lead&background=22c55e&color=fff"
+                                class="rounded-circle shadow-lg" style="width:100px; height:100px; object-fit:cover;">
+                            <label for="tl-upload-photo"
+                                class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow"
+                                style="width:32px; height:32px; background:#0f172a; color:#fff; cursor:pointer; border:2px solid #ffffff;">
+                                <i class="bi bi-camera-fill" style="font-size:14px;"></i>
+                            </label>
+                            <input type="file" id="tl-upload-photo" hidden accept="image/*" onchange="tlPreviewImage(event)">
+                        </div>
+                        <h4 class="fw-bold mb-1" id="tlDisplayName">Team Lead</h4>
+                        <p class="text-muted small mb-3">Senior Team Lead - IT Dept</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2">Emp ID: #9822</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 animate-card delay-3">
+                        <h5 class="fw-bold mb-4">Personal Details</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted mb-1">Full Name</label>
+                                <input type="text" class="form-control bg-light border-0" id="tlViewName" value="" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted mb-1">Official Email</label>
+                                <input type="email" class="form-control bg-light border-0" id="tlViewEmail" value="gajanan.tl@srujaninfotech.com" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted mb-1">Mobile Number</label>
+                                <input type="text" class="form-control bg-light border-0" id="tlViewMobile" value="+91 8421892010" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted mb-1">Department</label>
+                                <input type="text" class="form-control bg-light border-0" value="Information Technology" readonly>
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="small fw-bold text-muted mb-1">Security</label>
+                                <input type="text" class="form-control bg-light border-0 py-2"
+                                    value="Change Password / Forgot Password / OTP" readonly style="cursor:pointer;"
+                                    data-bs-toggle="modal" data-bs-target="#tlSecurityCenterModal">
+                            </div>
+                        </div>
+                        <hr class="my-4 opacity-50">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-bold w-100 shadow-sm"
+                                    data-bs-toggle="modal" data-bs-target="#editTLProfileModal">
+                                    <i class="bi bi-pencil-square me-2"></i>Edit My Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /tl-main -->
+
+    <!-- SMART TASK MODAL -->
+    <div class="modal fade" id="smartTaskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 30px;">
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Task Deployment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="unifiedTaskForm">
+                        <div class="row g-4">
+                            <div class="col-md-7 border-end pe-4">
+                                <h6 class="text-muted small fw-bold mb-3 text-uppercase">Task Configuration</h6>
+
+                                <!-- STEP 1: PM TASK DROPDOWN -->
+                                <div class="mb-3">
+                                    <label class="small fw-bold mb-1">Step 1: Select Task (From PM)</label>
+                                    <select class="form-select bg-light border-0 py-2" id="pmTaskDropdown" required>
+                                        <option value="" disabled selected>-- Choose Task --</option>
+                                        <option value="CUSTOM" style="font-weight: bold; color: #6366f1;">
+                                            + Create New Internal Task
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="small fw-bold mb-1">Task Name</label>
+                                    <input type="text" class="form-control bg-light border-0 py-2"
+                                        placeholder="Enter task title" required>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small fw-bold">Task ID</label>
+                                        <input type="text" class="form-control bg-light border-0" placeholder="e.g. TL-101">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small fw-bold">Duration (Hrs)</label>
+                                        <input type="number" class="form-control bg-light border-0" placeholder="e.g. 12">
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small fw-bold">Deadline</label>
+                                        <input type="date" class="form-control bg-light border-0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small fw-bold">Priority</label>
+                                        <select class="form-select bg-light border-0">
+                                            <option value="high">🔥 High</option>
+                                            <option selected>⚡ Medium</option>
+                                            <option value="low">☁️ Low</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="small fw-bold">Required Skills</label>
+                                    <input type="text" class="form-control bg-light border-0"
+                                        placeholder="e.g. Python, MySQL">
+                                </div>
+                            </div>
+
+                            <!-- UPDATED CHIP UI FOR DEVELOPERS -->
+                            <div class="col-md-5 ps-4">
+                                <h6 class="text-muted small fw-bold mb-3 text-uppercase">Select Developers (Tap to Select)</h6>
+                                <div id="devChipsContainer" class="d-flex flex-wrap gap-2">
+                                    <div id="devChipsContainer" class="text-muted small">Loading developers...</div>
+                                    
+                                    
+                                </div>
+                                <div class="mt-3">
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill" id="selectedDevCount">0 Selected</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="btn btn-primary w-100 rounded-pill py-3 fw-bold mt-4 shadow-lg">
+                            Deploy Task to Selected Team
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TL EDIT PROFILE MODAL -->
+    <div class="modal fade" id="editTLProfileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
+                <div class="modal-header bg-light border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Update Team Lead Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="tlProfileUpdateForm">
+                        <div class="mb-3">
+                            <label class="small fw-bold mb-1 text-muted">Full Name</label>
+                            <input type="text" class="form-control bg-light border-0 py-2" id="edit-tl-name" value="" placeholder="Enter full name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small fw-bold mb-1 text-muted">Official Email</label>
+                            <input type="email" class="form-control bg-light border-0 py-2" id="edit-tl-email" value="gajanan.tl@srujaninfotech.com" placeholder="Official email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small fw-bold mb-1 text-muted">Mobile Number</label>
+                            <input type="tel" class="form-control bg-light border-0 py-2" id="edit-tl-mobile" value="+91 8421892010" placeholder="Mobile number">
+                        </div>
+                        <div class="mb-4">
+                            <label class="small fw-bold mb-1 text-muted">Tech Expertise</label>
+                            <input type="text" class="form-control bg-light border-0 py-2" id="edit-tl-skills"
+                                value="Full Stack, System Design" placeholder="e.g. React, Node.js">
+                            <small class="text-muted" style="font-size: 10px;">Helps the PM assign the right projects.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW SPRINT MODAL -->
+    <div class="modal fade" id="sprintModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold text-success">Active Sprint #42</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    
+                    <div class="p-3 bg-light rounded-4">
+                        <span class="small fw-bold text-dark">Current Focus:</span>
+                        <p class="small mb-0 mt-1 text-muted">
+                            Core API integration and front-end UI polish for the client demo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW TARGET MODAL -->
+    <div class="modal fade" id="targetModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold">Today's Targets</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="small text-muted d-block mb-1">Critical Tasks</label>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-bug text-danger"></i>
+                            <span class="small fw-semibold">Resolve 05 priority bugs</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="small text-muted d-block mb-1">Meetings &amp; Calls</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-event text-primary"></i>
+                            <span class="small fw-semibold">02 client meetings</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-dark w-100 rounded-pill btn-sm fw-bold" data-bs-dismiss="modal">Acknowledged</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSIGN DEVELOPER MODAL -->
+    <div class="modal fade" id="assignDevModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-light border-0 pt-3 px-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-person-gear me-1"></i> Change Developer
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-1">Select New Developer</label>
+                        <select class="form-select bg-light border-0">
+                            
+                            
+                            <option>Aditya (UI/UX)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-dark w-100 rounded-pill btn-sm fw-bold" data-bs-dismiss="modal">Assign Developer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TL SECURITY CENTER MODAL (3 tabs) -->
+    <div class="modal fade" id="tlSecurityCenterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
+                <div class="modal-header bg-light border-0 pt-4 px-4">
+                    <div>
+                        <span class="badge bg-dark-subtle text-dark security-pill mb-1">Team Lead Security</span>
+                        <h5 class="fw-bold mb-0 mt-1">
+                            <i class="bi bi-shield-lock-fill me-2 text-primary"></i>Security Center
+                        </h5>
+                        <small class="text-muted">Manage your password and account recovery settings.</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4 pt-3">
+                    <ul class="nav nav-tabs nav-fill small mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tl-change-tab" data-bs-toggle="tab"
+                                data-bs-target="#tlChangePane" type="button" role="tab">
+                                <i class="bi bi-key me-1"></i> Change Password
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tl-forgot-tab" data-bs-toggle="tab"
+                                data-bs-target="#tlForgotPane" type="button" role="tab">
+                                <i class="bi bi-envelope-open me-1"></i> Forgot Password
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tl-otp-tab" data-bs-toggle="tab"
+                                data-bs-target="#tlOtpPane" type="button" role="tab">
+                                <i class="bi bi-shield-check me-1"></i> Verify OTP
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-2">
+                        <!-- Change Password -->
+                        <div class="tab-pane fade show active" id="tlChangePane" role="tabpanel"
+                            aria-labelledby="tl-change-tab">
+                            <form id="tlChangePasswordForm">
+                                <div class="mb-2">
+                                    <label class="small fw-bold text-muted mb-1">Current TL Password</label>
+                                    <div class="input-group bg-light" style="border-radius: 10px;">
+                                        <input type="password"
+                                            class="form-control border-0 bg-transparent py-2 small"
+                                            id="tlCurrPass" placeholder="Current password">
+                                        <span class="input-group-text border-0 bg-transparent"
+                                            onclick="togglePass('tlCurrPass')" style="cursor: pointer;">
+                                            <i class="bi bi-eye text-muted" id="eye-tlCurrPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="small fw-bold text-muted mb-1">New Password</label>
+                                    <div class="input-group bg-light" style="border-radius: 10px;">
+                                        <input type="password"
+                                            class="form-control border-0 bg-transparent py-2 small"
+                                            id="tlNewPass" placeholder="New password">
+                                        <span class="input-group-text border-0 bg-transparent"
+                                            onclick="togglePass('tlNewPass')" style="cursor: pointer;">
+                                            <i class="bi bi-eye text-muted" id="eye-tlNewPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted mb-1">Confirm New Password</label>
+                                    <div class="input-group bg-light" style="border-radius: 10px;">
+                                        <input type="password"
+                                            class="form-control border-0 bg-transparent py-2 small"
+                                            id="tlConfPass" placeholder="Confirm password">
+                                        <span class="input-group-text border-0 bg-transparent"
+                                            onclick="togglePass('tlConfPass')" style="cursor: pointer;">
+                                            <i class="bi bi-eye text-muted" id="eye-tlConfPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                    class="btn btn-dark w-100 rounded-pill fw-bold mt-1"
+                                    onclick="submitTlPasswordChange()">
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Forgot Password -->
+                        <div class="tab-pane fade" id="tlForgotPane" role="tabpanel"
+                            aria-labelledby="tl-forgot-tab">
+                            <form id="tlForgotPasswordForm">
+                                <p class="small text-muted mb-2">
+                                    Enter the registered TL email to receive a one-time password.
+                                </p>
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted mb-1">Registered Email</label>
+                                    <input type="email"
+                                        class="form-control bg-light border-0 py-2 small"
+                                        id="tlForgotEmail"
+                                        value="gajanan.tl@srujaninfotech.com">
+                                </div>
+                                <button type="button"
+                                    class="btn btn-primary w-100 rounded-pill fw-bold"
+                                    onclick="sendTlOtp()">
+                                    Send OTP to Email
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- OTP Verify -->
+                        <div class="tab-pane fade" id="tlOtpPane" role="tabpanel"
+                            aria-labelledby="tl-otp-tab">
+                            <form id="tlOtpVerifyForm">
+                                <p class="small text-muted mb-2">
+                                    Enter the 6-digit OTP sent to your TL email.
+                                </p>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp1" oninput="moveNext(this,'tlOtp2')">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp2" oninput="moveNext(this,'tlOtp3')">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp3" oninput="moveNext(this,'tlOtp4')">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp4" oninput="moveNext(this,'tlOtp5')">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp5" oninput="moveNext(this,'tlOtp6')">
+                                    <input type="text" maxlength="1"
+                                        class="form-control otp-input bg-light border-0"
+                                        id="tlOtp6">
+                                </div>
+                                <button type="button"
+                                    class="btn btn-success w-100 rounded-pill fw-bold"
+                                    onclick="verifyTlOtp()">
+                                    Verify OTP & Unlock
+                                </button>
+                                <button type="button"
+                                    class="btn btn-link d-block mx-auto mt-2 small"
+                                    onclick="sendTlOtp()">
+                                    Resend OTP
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="mobile-nav">
+        <a class="mob-nav-item active" onclick="showSection('overview', event)">
+            <i class="bi bi-speedometer2"></i> Overview
+        </a>
+        <a class="mob-nav-item" onclick="showSection('tasks', event)">
+            <i class="bi bi-code-square"></i> Tasks
+        </a>
+        <a class="mob-nav-item position-relative" onclick="showSection('pm-tasks', event)">
+            <i class="bi bi-inbox-fill"></i> PM Tasks
+            <span class="badge bg-danger rounded-pill position-absolute" style="top:0;right:8px;font-size:9px;">3</span>
+        </a>
+        <a class="mob-nav-item" onclick="showSection('team', event)">
+            <i class="bi bi-people"></i> Team
+        </a>
+        <a class="mob-nav-item" onclick="showSection('profile', event)">
+            <i class="bi bi-person-circle"></i> Profile
+        </a>
+    </nav>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/api.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('tlSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const icon = document.getElementById('hamburgerIcon');
+            const isOpen = sidebar.classList.toggle('open');
+            overlay.classList.toggle('open', isOpen);
+            icon.className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+        }
+
+        function closeSidebar() {
+            document.getElementById('tlSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.getElementById('hamburgerIcon').className = 'bi bi-list';
+        }
+
+        function showSection(sectionName, event) {
+            if (event) event.preventDefault();
+            document.querySelectorAll('.dashboard-section').forEach(sec => sec.style.display = 'none');
+            const target = document.getElementById('section-' + sectionName);
+            if (target) target.style.display = 'block';
+
+            // Sidebar nav active
+            document.querySelectorAll('.nav-item').forEach(link => link.classList.remove('active'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+            // Mobile bottom nav active
+            document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
+            const sectionMap = {
+                overview: 0,
+                tasks: 1,
+                'pm-tasks': 2,
+                team: 3,
+                profile: 4
+            };
+            const mobItems = document.querySelectorAll('.mob-nav-item');
+            if (mobItems[sectionMap[sectionName]] !== undefined) {
+                mobItems[sectionMap[sectionName]].classList.add('active');
+            }
+
+            // Close sidebar on mobile after nav
+            if (window.innerWidth <= 768) closeSidebar();
+        }
+
+        // PM Task status update (Accept / Rework)
+        function updatePMTaskStatus(btn, status) {
+            Swal.fire({
+                title: status === 'Completed' ? 'Accept this task?' : 'Send task for rework?',
+                text: status === 'Completed'
+                    ? 'You will accept this task and start working on it.'
+                    : 'You will send this task back to the PM for rework.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: status === 'Completed' ? '#22c55e' : '#f59e0b',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Confirm'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const card = btn.closest('.tl-card-white');
+                    const actionDiv = btn.closest('.d-flex.gap-2');
+                    if (status === 'Completed') {
+                        actionDiv.innerHTML =
+                            `<span class="badge bg-success rounded-pill px-3 py-2" style="font-size:12px;"><i class="bi bi-check-circle-fill me-1"></i>Accepted</span>`;
+                        card.style.borderLeftColor = '#22c55e';
+                    } else {
+                        actionDiv.innerHTML =
+                            `<span class="badge bg-warning rounded-pill px-3 py-2" style="font-size:12px;"><i class="bi bi-arrow-counterclockwise me-1"></i>Rework Sent</span>`;
+                        card.style.borderLeftColor = '#f59e0b';
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: status === 'Completed' ? 'Task accepted' : 'Rework sent',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        function tlPreviewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const profileImg = document.getElementById('tlProfilePhoto');
+                if (profileImg) profileImg.src = e.target.result;
+
+                const headerImg = document.getElementById('tlProfileHeader');
+                if (headerImg) headerImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openSprintModal() {
+            const myModal = new bootstrap.Modal(document.getElementById('sprintModal'));
+            myModal.show();
+        }
+
+        function openTargetModal() {
+            const myModal = new bootstrap.Modal(document.getElementById('targetModal'));
+            myModal.show();
+        }
+
+        // Assign Dev support
+        let currentAssignTaskId = null;
+
+        function setTaskId(taskId) {
+            currentAssignTaskId = taskId;
+            console.log('Assign developer for Task ID:', currentAssignTaskId);
+        }
+
+        // TL Chip selection
+        let selectedDevs = [];
+
+        function toggleDevChip(el) {
+            const name = el.dataset.name;
+            el.classList.toggle('selected');
+
+            if (el.classList.contains('selected')) {
+                selectedDevs.push(name);
+            } else {
+                selectedDevs = selectedDevs.filter(d => d !== name);
+            }
+            document.getElementById('selectedDevCount').innerText = selectedDevs.length + ' Selected';
+        }
+
+        // Sync PM tasks into dropdown with CUSTOM option
+        function syncPmTasksToDropdown() {
+            const dropdown = document.getElementById('pmTaskDropdown');
+            if (!dropdown) return;
+
+            const incomingTasks = document.querySelectorAll('#section-pm-tasks .tl-card-white');
+
+            dropdown.innerHTML = `
+                <option value="" disabled selected>-- Choose Task --</option>
+                <option value="CUSTOM" style="font-weight: bold; color: #6366f1;">+ Create New Internal Task</option>
+            `;
+
+            incomingTasks.forEach(card => {
+                const titleEl = card.querySelector('.fw-bold');
+                if (!titleEl) return;
+
+                const taskName = titleEl.innerText.trim();
+                const option = document.createElement('option');
+                option.value = taskName;
+                option.text = `From PM: ${taskName}`;
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Attach sync to "Start Assignment" button
+        document.querySelector('[data-bs-target="#smartTaskModal"]')
+            .addEventListener('click', syncPmTasksToDropdown);
+
+        // Auto-fill Task Name input based on dropdown selection
+        document.getElementById('pmTaskDropdown').addEventListener('change', function () {
+            const taskNameInput = document.querySelector('#unifiedTaskForm input[placeholder="Enter task title"]');
+            if (!taskNameInput) return;
+
+            if (this.value === 'CUSTOM') {
+                taskNameInput.value = '';
+                taskNameInput.placeholder = 'Enter Internal Project/Task Name';
+                taskNameInput.focus();
+            } else {
+                taskNameInput.value = this.value;
+                taskNameInput.placeholder = 'Enter task title';
+            }
+        });
+
+        // Unified form submit
+        document.getElementById('unifiedTaskForm').onsubmit = function (e) {
+            e.preventDefault();
+            if (selectedDevs.length === 0) {
+                Swal.fire('Error', 'Please select at least one developer.', 'error');
+                return;
+            }
+            Swal.fire('Deployed!', `Task assigned to: ${selectedDevs.join(', ')}`, 'success');
+            const modalEl = document.getElementById('smartTaskModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+        };
+
+        // Status update with confirm dialog (Dev tasks table)
+        async function updateStatus(taskId, status) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: `Do you want to mark this task as ${status}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: status === 'Approved' ? '#22c55e' : '#f59e0b',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, proceed'
+            });
+            if (result.isConfirmed) {
+                try {
+                    const mapStatus = status === 'Approved' ? 'Completed' : status === 'Rework' ? 'Pending' : status;
+                    const res = await Tasks.update(taskId, { status: mapStatus, progress: mapStatus === 'Completed' ? 100 : undefined });
+                    if (res && res.success) {
+                        Swal.fire({ icon:'success', title:'Updated!', text:`Task marked as ${status}.`, timer:1500, showConfirmButton:false });
+                        loadTLData();
+                    } else {
+                        Swal.fire({ icon:'error', title:'Failed', text: res?.error || 'Could not update task.' });
+                    }
+                } catch(e) {
+                    Swal.fire({ icon:'error', title:'Error', text:'Server error.' });
+                }
+            }
+            if (false) { // dummy to close old block
+                }
+            });
+        }
+
+        function togglePass(id) {
+            const input = document.getElementById(id);
+            const eye = document.getElementById('eye-' + id);
+            if (!input || !eye) return;
+            if (input.type === "password") {
+                input.type = "text";
+                eye.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = "password";
+                eye.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        function submitTlPasswordChange() {
+            const current = document.getElementById('tlCurrPass').value;
+            const next = document.getElementById('tlNewPass').value;
+            const confirm = document.getElementById('tlConfPass').value;
+
+            if (!current || !next || !confirm) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing information',
+                    text: 'All password fields are required.',
+                    confirmButtonColor: '#0095f6'
+                });
+                return;
+            }
+
+            if (next !== confirm) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mismatch',
+                    text: 'New passwords do not match.',
+                    confirmButtonColor: '#0095f6'
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Team Lead password has been updated.',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                document.getElementById('tlCurrPass').value = "";
+                document.getElementById('tlNewPass').value = "";
+                document.getElementById('tlConfPass').value = "";
+            });
+        }
+
+        function sendTlOtp() {
+            const email = document.getElementById('tlForgotEmail').value.trim();
+            if (!email) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Email required',
+                    text: 'Please enter the registered TL email.',
+                    confirmButtonColor: '#0095f6'
+                });
+                return;
+            }
+            Swal.fire({
+                icon: 'success',
+                title: 'OTP sent',
+                text: 'A one-time password has been sent to ' + email + '.',
+                confirmButtonColor: '#6366f1'
+            });
+        }
+
+        function moveNext(curr, nextId) {
+            if (curr.value.length === 1 && nextId) {
+                const next = document.getElementById(nextId);
+                if (next) next.focus();
+            }
+        }
+
+        function verifyTlOtp() {
+            let otp = "";
+            for (let i = 1; i <= 6; i++) {
+                const v = document.getElementById('tlOtp' + i).value.trim();
+                otp += v;
+            }
+
+            if (otp.length !== 6) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid OTP',
+                    text: 'Please enter all 6 digits.',
+                    confirmButtonColor: '#0095f6'
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Verified',
+                text: 'OTP verified. TL account unlocked for reset.',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                for (let i = 1; i <= 6; i++) {
+                    document.getElementById('tlOtp' + i).value = "";
+                }
+            });
+        }
+
+        // ── SEARCH TABLE (Sprint Monitor & Dev Task List) ──
+        function searchTable(query, tbodyId) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#' + tbodyId + ' tr').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        // ── SEARCH PM TASKS ──
+        function searchPmTasks(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('.pm-task-card').forEach(card => {
+                card.style.display = card.dataset.title.includes(q) || card.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        // ── SEARCH TEAM MEMBERS ──
+        function searchTeam(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('.team-member-col').forEach(col => {
+                col.style.display = col.dataset.name.includes(q) ? '' : 'none';
+            });
+        }
+
+        // ── OPEN MEMBER DETAIL MODAL ──
+        function openMemberDetail(m) {
+            document.getElementById('md-avatar').textContent    = m.avatar;
+            document.getElementById('md-avatar').style.background = m.color;
+            document.getElementById('md-name').textContent      = m.name;
+            document.getElementById('md-role').textContent      = m.role;
+            document.getElementById('md-empid').textContent     = m.empId;
+            document.getElementById('md-email').textContent     = m.email;
+            document.getElementById('md-mobile').textContent    = m.mobile;
+            document.getElementById('md-dept').textContent      = m.dept;
+            document.getElementById('md-skills').textContent    = m.skills;
+            document.getElementById('md-tasks').textContent     = m.tasks;
+            document.getElementById('md-done').textContent      = m.done;
+            document.getElementById('md-load-bar').style.width  = m.load + '%';
+            document.getElementById('md-load-text').textContent = m.load + '%';
+            const badge = document.getElementById('md-status');
+            badge.textContent = m.status;
+            badge.className = 'badge rounded-pill px-3 py-2 ' + (m.status === 'Active' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger');
+            new bootstrap.Modal(document.getElementById('memberDetailModal')).show();
+        }
+
+        // ── TL PROFILE UPDATE ──
+        document.getElementById('tlProfileUpdateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name   = document.getElementById('edit-tl-name').value.trim();
+            const email  = document.getElementById('edit-tl-email').value.trim();
+            const mobile = document.getElementById('edit-tl-mobile').value.trim();
+
+            if (!name || !email || !mobile) {
+                Swal.fire({ icon: 'error', title: 'Missing Fields', text: 'Please fill all required fields.', confirmButtonColor: '#0f172a' });
+                return;
+            }
+
+            // Update profile view
+            document.getElementById('tlViewName').value    = name;
+            document.getElementById('tlViewEmail').value   = email;
+            document.getElementById('tlViewMobile').value  = mobile;
+            document.getElementById('tlDisplayName').textContent = name;
+            // Update topbar name
+            const topbarName = document.querySelector('.tl-topbar-profile-text .name');
+            if (topbarName) topbarName.textContent = name;
+
+            Swal.fire({ icon: 'success', title: 'Profile Updated!', timer: 1500, showConfirmButton: false });
+            bootstrap.Modal.getInstance(document.getElementById('editTLProfileModal')).hide();
+        });
+
+    function statusBadge(s) {
+        const map = { 'Completed':'bg-success-subtle text-success', 'In Progress':'bg-warning-subtle text-warning', 'Pending':'bg-danger-subtle text-danger', 'Not Started':'bg-secondary-subtle text-secondary' };
+        return '<span class="badge ' + (map[s]||'bg-secondary-subtle text-secondary') + ' rounded-pill px-3">' + (s||'Pending') + '</span>';
+    }
+    function priorityBadge(p) {
+        const map = { 'Critical':'bg-danger text-white', 'High':'bg-danger-subtle text-danger', 'Medium':'bg-warning-subtle text-warning', 'Low':'bg-success-subtle text-success', 'Overdue':'bg-dark text-white' };
+        return '<span class="badge ' + (map[p]||'bg-secondary-subtle text-secondary') + ' rounded-pill" style="font-size:10px;">' + (p||'Medium') + '</span>';
+    }
+
+    async function loadTLData() {
+        try {
+            const me = await Auth.me();
+            if (!me.success) { window.location.href = '/'; return; }
+            const u = me.data;
+            const name = u.full_name || u.name || 'Team Lead';
+            const email = u.official_email || '';
+            const mobile = u.mobile || '';
+
+            const topbarN = document.querySelector('.tl-topbar-profile-text .name');
+            if (topbarN) topbarN.textContent = name;
+            const headerImg = document.getElementById('tlProfileHeader');
+            if (headerImg) headerImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=22c55e&color=fff';
+            const dispName = document.getElementById('tlDisplayName');
+            if (dispName) dispName.textContent = name;
+            const viewName = document.getElementById('tlViewName');
+            if (viewName) viewName.value = name;
+            const viewEmail = document.getElementById('tlViewEmail');
+            if (viewEmail) viewEmail.value = email;
+            const viewMobile = document.getElementById('tlViewMobile');
+            if (viewMobile) viewMobile.value = mobile;
+            const editName = document.getElementById('edit-tl-name');
+            if (editName) editName.value = name;
+            const editEmail = document.getElementById('edit-tl-email');
+            if (editEmail) editEmail.value = email;
+            const editMobile = document.getElementById('edit-tl-mobile');
+            if (editMobile) editMobile.value = mobile;
+
+            const tasksRes = await Tasks.list();
+            if (tasksRes.success && tasksRes.data) {
+                const tasks = tasksRes.data;
+                const sprintBody = document.getElementById('sprintTableBody');
+                if (sprintBody) {
+                    if (tasks.length === 0) {
+                        sprintBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No tasks yet.</td></tr>';
+                    } else {
+                        sprintBody.innerHTML = tasks.map(function(t) {
+                            return '<tr><td><b>' + (t.task_name||t.name||'') + '</b><br><small class="text-muted">' + (t.project_name||t.project_code||'') + '</small></td><td>' + (t.assigned_dev||'&mdash;') + '</td><td>' + (t.deadline||'&mdash;') + '</td><td>' + statusBadge(t.status) + '</td></tr>';
+                        }).join('');
+                    }
+                }
+
+                // Dev task table
+                const devTaskBody = document.getElementById('devTaskTableBody');
+                if (devTaskBody) {
+                    if (tasks.length === 0) {
+                        devTaskBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No tasks yet.</td></tr>';
+                    } else {
+                        devTaskBody.innerHTML = tasks.map(function(t) {
+                            return '<tr><td><b>' + (t.task_name||t.name||'') + '</b><br><small class="text-muted">' + (t.project_name||'') + '</small></td><td>' + (t.assigned_dev||'&mdash;') + '</td><td>' + (t.deadline||'&mdash;') + '</td><td>' + statusBadge(t.status) + '</td><td class="text-center"><div class="btn-group btn-group-sm"><button class="btn btn-outline-success border-0" onclick="updateStatus(' + t.id + ',\'Approved\')" title="Approve"><i class="bi bi-check-circle-fill"></i></button><button class="btn btn-outline-warning border-0" onclick="updateStatus(' + t.id + ',\'Rework\')" title="Rework"><i class="bi bi-arrow-counterclockwise"></i></button></div></td></tr>';
+                        }).join('');
+                    }
+                }
+                const pmTaskContainer = document.querySelector('#section-pm-tasks .row.g-3');
+                if (pmTaskContainer) {
+                    if (tasks.length === 0) {
+                        pmTaskContainer.innerHTML = '<div class="col-12 text-center text-muted py-4">No PM assigned tasks yet.</div>';
+                    } else {
+                        pmTaskContainer.innerHTML = tasks.map(function(t) {
+                            return '';
+                        }).join('');
+                    }
+                }
+            }
+
+            const empRes = await Users.list();
+            if (empRes.success && empRes.data) {
+                const devs = empRes.data.filter(function(e) { return e.role === 'developer' || e.role === 'tl'; });
+
+                // Load dev chips in assign modal
+                var chipsContainer = document.getElementById('devChipsContainer');
+                if (chipsContainer) {
+                    if (devs.length === 0) {
+                        chipsContainer.innerHTML = '<span class="text-muted small">No developers found.</span>';
+                    } else {
+                        chipsContainer.innerHTML = devs.map(function(d) {
+                            var n = d.name || d.full_name || '';
+                            var init = n.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+                            return '<div class="team-chip" data-name="' + n + '" onclick="toggleDevChip(this)"><span class="avatar" style="background:#6366f1;">' + init + '</span> ' + n + ' <small>' + (d.role||'Dev') + '</small></div>';
+                        }).join('');
+                    }
+                }
+
+                // Load dev dropdown in assign modal
+                var assignSelect = document.querySelector('#assignDevModal select, #assignDevForm select');
+                if (assignSelect) {
+                    assignSelect.innerHTML = '<option value="">Select Developer</option>' + devs.map(function(d){
+                        var n = d.name || d.full_name || '';
+                        return '<option value="' + n + '">' + n + ' (' + (d.role||'Dev') + ')</option>';
+                    }).join('');
+                }
+
+                const teamContainer = document.getElementById('teamMembersGrid');
+                if (teamContainer) {
+                    if (devs.length === 0) {
+                        teamContainer.innerHTML = '<div class="col-12 text-center text-muted py-4">No team members yet.</div>';
+                    } else {
+                        teamContainer.innerHTML = devs.map(function(d) {
+                            var initials = (d.name||d.full_name||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+                            return '<div class="col-md-6 col-lg-4 animate-card"><div class="team-member-card"><div class="member-avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">' + initials + '</div><div class="member-info"><div class="fw-bold" style="font-size:14px;">' + (d.name||d.full_name||'&mdash;') + '</div><div class="text-muted" style="font-size:12px;">' + (d.role||'Developer') + '</div><div class="text-muted" style="font-size:11px;">' + (d.dept||d.department||'&mdash;') + '</div></div><span class="member-status status-active">Active</span></div></div>';
+                        }).join('');
+                    }
+                }
+            }
+        } catch(e) { console.log('TL data load error:', e); }
+    }
+    loadTLData();
+    </script>
+
+    <!-- MEMBER DETAIL MODAL -->
+    <div class="modal fade" id="memberDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:28px; overflow:hidden;">
+                <!-- Header gradient -->
+                <div style="background:var(--tl-gradient); padding:28px 24px 20px; color:#fff; position:relative;">
+                    <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal"></button>
+                    <div class="d-flex align-items-center gap-3">
+                        <div id="md-avatar" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;border:3px solid rgba(255,255,255,0.4);">R</div>
+                        <div>
+                            <h5 class="fw-bold mb-0" id="md-name">—</h5>
+                            <p class="mb-1 opacity-75" style="font-size:13px;" id="md-role">—</p>
+                            <span class="badge rounded-pill px-3 py-1" id="md-status">Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Info grid -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Employee ID</div>
+                                <div class="fw-bold mt-1" id="md-empid">—</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Department</div>
+                                <div class="fw-bold mt-1" style="font-size:13px;" id="md-dept">—</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Official Email</div>
+                                <div class="fw-bold mt-1" style="font-size:13px;" id="md-email">—</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Mobile</div>
+                                <div class="fw-bold mt-1" id="md-mobile">—</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Skills</div>
+                                <div class="fw-bold mt-1" style="font-size:12px;" id="md-skills">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Workload -->
+                    <div class="border rounded-3 p-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-bold">Current Workload</span>
+                            <span class="small fw-bold text-primary" id="md-load-text">0%</span>
+                        </div>
+                        <div class="progress mb-3" style="height:8px;border-radius:999px;">
+                            <div class="progress-bar" id="md-load-bar" style="background:var(--tl-gradient);border-radius:999px;width:0%;transition:width .6s ease;"></div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div class="text-center">
+                                <div class="fw-bold fs-5" id="md-tasks">0</div>
+                                <div class="text-muted" style="font-size:11px;">Total Tasks</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="fw-bold fs-5 text-success" id="md-done">0</div>
+                                <div class="text-muted" style="font-size:11px;">Completed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

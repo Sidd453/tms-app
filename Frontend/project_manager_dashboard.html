@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager – Task Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --pm-dark-bg:#020617; --pm-acc:#6366f1; }
+        body { background:radial-gradient(circle at top,#e0f2fe 0,#f8fafc 40%,#f9fafb 100%); min-height:100vh; color:#0f172a; font-family:'Inter',system-ui,sans-serif; }
+        .pm-sidebar { width:200px; min-height:100vh; background:var(--pm-dark-bg); position:fixed; top:0; left:0; display:flex; flex-direction:column; padding:20px 14px; color:#e5e7eb; box-shadow:4px 0 18px rgba(15,23,42,.45); z-index:1000; }
+        .pm-logo { border-radius:12px; background:linear-gradient(135deg,#6366f1,#22d3ee); padding:10px; text-align:center; font-weight:800; font-size:18px; margin-bottom:24px; letter-spacing:1px; }
+        .nav-item { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; cursor:pointer; transition:.25s; color:#94a3b8; text-decoration:none; font-size:13px; margin-bottom:6px; position:relative; }
+        .nav-item i { font-size:15px; }
+        .nav-item.active { background:rgba(148,163,184,.22); color:#f9fafb; }
+        .nav-item.active::before { content:""; position:absolute; left:0; top:6px; bottom:6px; width:3px; border-radius:0 6px 6px 0; background:#22c55e; }
+        .nav-item:hover { background:rgba(148,163,184,.25); color:#f9fafb; padding-left:16px; }
+        .pm-main { margin-left:200px; padding:22px 24px 26px; }
+        .pm-sidebar-toggle { display:none; border-radius:999px; padding:4px 10px; }
+        .dashboard-section { display:none; }
+        .content-section { }
+        .pm-topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding:14px 18px; border-radius:18px; background:rgba(255,255,255,.9); backdrop-filter:blur(12px); border:1px solid #e2e8f0; box-shadow:0 10px 30px rgba(15,23,42,.08); }
+        .pm-topbar-title h2 { margin:0; font-size:20px; }
+        .pm-topbar-profile { display:flex; align-items:center; gap:8px; cursor:pointer; }
+        .pm-topbar-profile-text { display:flex; flex-direction:column; line-height:1.1; }
+        .pm-topbar-profile-text .name { font-size:12px; font-weight:600; color:#0f172a; }
+        .pm-topbar-profile-text .role { font-size:10px; color:#6b7280; }
+        .action-card { border-radius:18px; padding:14px 15px; border:1px solid rgba(148,163,184,.25); box-shadow:0 8px 20px rgba(15,23,42,.08); transition:all .25s ease-out; position:relative; overflow:hidden; }
+        .action-card:hover { transform:translateY(-3px) scale(1.01); box-shadow:0 14px 28px rgba(15,23,42,.14); }
+        .ac-red { background:linear-gradient(135deg,#fee2e2,#fecaca); }
+        .ac-blue { background:linear-gradient(135deg,#dbeafe,#bfdbfe); }
+        .ac-orange { background:linear-gradient(135deg,#ffedd5,#fed7aa); }
+        .ac-green { background:linear-gradient(135deg,#dcfce7,#bbf7d0); }
+        .ac-icon { width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.08); font-size:18px; margin-bottom:6px; }
+        .ac-btn { font-size:12px; font-weight:600; padding:6px 14px; border-radius:999px; border:0; background:#020617; color:white; transition:.22s; }
+        .ac-btn:hover { background:#111827; transform:translateY(-1px); }
+        .ac-title { font-weight:700; font-size:14px; margin-bottom:2px; }
+        .ac-sub { font-size:11.5px; color:#374151; margin-bottom:8px; }
+        .project-strip-card { border-radius:16px; background:rgba(255,255,255,.9); box-shadow:0 10px 26px rgba(148,163,184,.35); border:1px solid rgba(148,163,184,.35); padding:12px 14px; }
+        .project-pill { min-width:230px; border-radius:14px; padding:10px 12px; border:1px solid rgba(148,163,184,.4); box-shadow:0 6px 14px rgba(148,163,184,.35); cursor:pointer; transition:all .25s; }
+        .project-pill:hover { border-color:#6366f1; box-shadow:0 8px 20px rgba(99,102,241,.2); transform:translateY(-2px); }
+        .pm-card-dark { border-radius:18px; background:rgba(15,23,42,.96); padding:16px; color:#f1f5f9; box-shadow:0 18px 40px rgba(15,23,42,.7); border:1px solid rgba(148,163,184,.4); }
+        .pm-card-dark h5 { font-size:15px; }
+        .table thead th { color:#94a3b8; font-size:10px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(148,163,184,.5); }
+        .table tbody td { font-size:12px; }
+        .task-grid-table th,.task-grid-table td { font-size:11px; vertical-align:middle; white-space:nowrap; }
+        .task-grid-table input,.task-grid-table select { font-size:11px; }
+        .file-chip { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:4px 10px; font-size:12px; margin:3px; }
+        .file-chip .remove-file { background:none; border:none; color:#ef4444; cursor:pointer; padding:0; font-size:13px; }
+        .team-chip { display:flex; align-items:center; gap:8px; padding:6px 14px 6px 8px; border-radius:40px; border:1.5px solid #e2e8f0; background:#fff; cursor:pointer; transition:all .2s; font-size:13px; font-weight:500; }
+        .team-chip:hover { border-color:var(--pm-acc); background:#f5f3ff; }
+        .team-chip.selected { background:#eef2ff; border-color:var(--pm-acc); color:var(--pm-acc); box-shadow:0 4px 12px rgba(99,102,241,.15); }
+        .team-chip .avatar { width:24px; height:24px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+        .team-chip small { font-size:10px; opacity:.6; margin-left:auto; }
+        .emp-card { border-radius:18px; padding:20px; border:1px solid #e2e8f0; background:#fff; transition:all .3s; cursor:pointer; }
+        .emp-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.1); transform:translateY(-3px); }
+        .proj-detail-panel { display:none; }
+        .proj-detail-panel.show { display:block; }
+        .profile-pic-wrap { position:relative; width:110px; height:110px; margin:0 auto; }
+        .profile-pic-wrap img { width:110px; height:110px; border-radius:50%; object-fit:cover; }
+        .otp-input { width:40px; height:45px; text-align:center; font-size:20px; border-radius:10px; }
+        @media(max-width:768px){
+            .pm-main { margin-left:0 !important; padding:10px; }
+            .pm-sidebar { transform:translateX(-100%); transition:transform .3s ease; }
+            .pm-sidebar.active { transform:translateX(0); }
+            .pm-sidebar-toggle { display:inline-flex; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="pm-sidebar" id="pmSidebar">
+    <div class="pm-logo">PM PANEL</div>
+    <a href="#" class="nav-item nav-link active" data-section="overview"><i class="bi bi-speedometer2"></i> Overview</a>
+    <a href="#" class="nav-item nav-link" data-section="tasks"><i class="bi bi-list-task"></i> Tasks</a>
+    <a href="#" class="nav-item nav-link" data-section="team"><i class="bi bi-people"></i> Team Members</a>
+    <a href="#" class="nav-item nav-link" data-section="profile"><i class="bi bi-person-circle"></i> Profile</a>
+    <div class="mt-auto pt-2" style="border-top:1px solid rgba(255,255,255,.1);">
+        <a href="#" class="nav-item" onclick="doLogout()"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </div>
+</div>
+
+<div class="pm-main">
+    <div class="pm-topbar">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-dark btn-sm pm-sidebar-toggle" id="sidebarToggleBtn"><i class="bi bi-list"></i></button>
+            <div class="pm-topbar-title">
+                <h2 class="fw-bold mb-1">Task Management</h2>
+                <p class="text-muted mb-0" style="font-size:12px;">Monitor progress, create tasks, and assign responsibility.</p>
+            </div>
+        </div>
+        <div class="pm-topbar-profile" onclick="showSection('profile')">
+            <div class="pm-topbar-profile-text text-end">
+                <span class="name" id="topbarName">Project Manager</span>
+                <span class="role">Project Management Head</span>
+            </div>
+            <img id="pmProfileHeader" src="https://ui-avatars.com/api/?name=PM&background=6366f1&color=fff" class="rounded-circle border border-2 border-primary" width="36" height="36">
+        </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="section-overview" class="dashboard-section content-section" style="display:block;">
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <div class="project-strip-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <h6 class="fw-bold text-muted small mb-0 text-uppercase"><i class="bi bi-folder-check me-2"></i>Projects Assigned by Admin</h6>
+                        <div class="input-group" style="max-width:220px;">
+                            <span class="input-group-text bg-light border-0 py-1"><i class="bi bi-search" style="font-size:12px;"></i></span>
+                            <input type="text" class="form-control form-control-sm bg-light border-0" id="projSearchBar" placeholder="Search project..." oninput="filterProjectPills()">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 overflow-auto pb-1" id="projectPillsContainer"></div>
+                </div>
+            </div>
+        </div>
+        <div id="projDetailPanel" class="proj-detail-panel mb-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill mb-1" id="dpCode">—</span>
+                        <h5 class="fw-bold mb-1" id="dpName">—</h5>
+                        <small class="text-muted" id="dpClient">—</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="closeProjDetail()"><i class="bi bi-x-lg me-1"></i>Close</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Assigned Date</small><span id="dpAssigned" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Deadline</small><span id="dpDeadline" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Est. Hours</small><span id="dpHours" class="fw-bold">—</span></div></div>
+                    <div class="col-md-3"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Priority</small><span id="dpPriority" class="fw-bold">—</span></div></div>
+                    <div class="col-md-8"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Description</small><span id="dpDesc">—</span></div></div>
+                    <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-2">Project Files</small><div id="dpFiles">—</div></div></div>
+                    <div class="col-12"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-2">Progress</small><div class="progress" style="height:8px;border-radius:8px;"><div class="progress-bar progress-bar-striped bg-primary" id="dpProgressBar" style="width:0%"></div></div><small class="text-muted mt-1 d-block" id="dpProgressText">0%</small></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="action-card ac-red">
+                    <div class="ac-icon text-danger"><i class="bi bi-plus-circle-fill"></i></div>
+                    <p class="ac-title">Create Task</p><p class="ac-sub">Start a new project workflow.</p>
+                    <button class="ac-btn" onclick="showSection('create-task-grid')">New Task</button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="action-card ac-orange">
+                    <div class="ac-icon text-dark"><i class="bi bi-person-gear"></i></div>
+                    <p class="ac-title">Assign TL + Team</p><p class="ac-sub">Handover tasks to team leaders.</p>
+                    <button class="ac-btn" data-bs-toggle="modal" data-bs-target="#assignTLModal">Assign Now</button>
+                </div>
+            </div>
+        </div>
+        <div class="pm-card-dark">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div><h5 class="fw-bold mb-0 text-light">Operational Monitor</h5><p class="text-secondary small mb-0" style="font-size:11px;">Live status of active project tasks.</p></div>
+                <div class="input-group" style="max-width:230px;">
+                    <span class="input-group-text bg-transparent border-end-0 border-secondary text-muted py-1 px-2"><i class="bi bi-search" style="font-size:11px;"></i></span>
+                    <input type="text" class="form-control bg-transparent border-start-0 border-secondary text-light py-1 px-2" placeholder="Search tasks..." style="font-size:11px;" oninput="filterTaskMonitor(this.value)">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless align-middle mb-0">
+                    <thead><tr class="small text-uppercase"><th class="ps-2">Task</th><th class="text-center">Project</th><th>Team Lead</th><th>Status</th><th class="text-end pe-2">Action</th></tr></thead>
+                    <tbody id="taskMonitorBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MASTER TASK REPOSITORY -->
+    <div id="section-tasks" class="dashboard-section content-section">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h3 class="fw-bold mb-0" style="font-size:18px;">Master Task Repository</h3>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <div class="input-group" style="max-width:220px;">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search" style="font-size:12px;"></i></span>
+                    <input type="text" class="form-control form-control-sm bg-light border-0" placeholder="Search tasks..." oninput="filterMasterRepo(this.value)">
+                </div>
+                <span class="badge bg-primary rounded-pill px-3 py-1" style="font-size:11px;" id="repoTotalBadge">0 Total</span>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-muted">
+                            <th class="ps-4">TASK ID</th><th>TASK NAME</th><th>PROJECT</th><th>ASSIGNED TL</th><th>ASSIGNED DEV</th><th>DEADLINE</th><th>PRIORITY</th><th>STATUS</th><th class="text-end pe-4">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterRepoBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEAM MEMBERS -->
+    <div id="section-team" class="dashboard-section content-section">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div><h3 class="fw-bold mb-1" style="font-size:18px;">Team Members</h3><p class="text-muted small mb-0">Click on a card to view full details.</p></div>
+            <div class="input-group" style="max-width:220px;">
+                <span class="input-group-text bg-light border-0"><i class="bi bi-search" style="font-size:12px;"></i></span>
+                <input type="text" class="form-control form-control-sm bg-light border-0" placeholder="Search member..." oninput="filterTeamMembers(this.value)">
+            </div>
+        </div>
+        <div class="row g-3" id="teamMembersGrid"></div>
+        <div id="memberDetailPanel" class="proj-detail-panel mt-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-primary"></i>Member Details</h5>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="closeMemberDetail()"><i class="bi bi-x-lg me-1"></i>Close</button>
+                </div>
+                <div class="row g-3" id="memberDetailContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD TL -->
+    <!-- CREATE TASK GRID -->
+    <div id="section-create-task-grid" class="dashboard-section content-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div><h3 class="fw-bold mb-1" style="font-size:18px;">Bulk Task Creation</h3><p class="text-muted small mb-0">Create multiple tasks for a single project.</p></div>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 p-3">
+            <div class="row mb-3 g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted mb-1">Select Project</label>
+                    <select class="form-select form-select-sm bg-light border-0" id="gridProject">
+                        <option selected disabled>-- Choose Project --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle task-grid-table" id="taskGridTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width:36px;">#</th>
+                            <th style="min-width:160px;">Task Name</th>
+                            <th style="min-width:100px;">Task ID</th>
+                            <th style="min-width:130px;">Date Assigned</th>
+                            <th style="min-width:130px;">Deadline</th>
+                            <th style="min-width:90px;">Hours</th>
+                            <th style="min-width:150px;">Expertise Level</th>
+                            <th style="min-width:130px;">Department</th>
+                            <th style="min-width:190px;">Required Skills</th>
+                            <th style="min-width:170px;">Assign Developer</th>
+                            <th style="min-width:80px;">Files</th>
+                            <th style="min-width:70px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskGridBody"></tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="addGridRow()"><i class="bi bi-plus-lg me-1"></i>Add Row</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light btn-sm rounded-pill px-3" onclick="showSection('overview')">Cancel</button>
+                    <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold" onclick="deployGridTasks()">Deploy All Tasks</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="section-profile" class="dashboard-section content-section">
+        <div class="mb-3"><h2 class="fw-bold mb-1" style="font-size:19px;">Manager Profile</h2><p class="text-muted small mb-0">Overview of your account and security.</p></div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
+                    <div class="profile-pic-wrap mb-2 mx-auto">
+                        <img id="pmProfilePhoto" src="https://ui-avatars.com/api/?name=PM&background=6366f1&color=fff" class="shadow-lg">
+                        <label for="pm-upload-photo" class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow" style="width:30px;height:30px;background:#0f172a;color:#fff;cursor:pointer;border:2px solid #fff;">
+                            <i class="bi bi-camera-fill" style="font-size:13px;"></i>
+                        </label>
+                        <input type="file" id="pm-upload-photo" hidden accept="image/*" onchange="pmPreviewImage(event)">
+                    </div>
+                    <h4 class="fw-bold mb-1" style="font-size:15px;" id="profileNameDisplay">Project Manager</h4>
+                    <p class="text-muted small mb-2">Project Management Head</p>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm rounded-4 p-3">
+                    <ul class="nav nav-tabs nav-fill small mb-3">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pmProfileInfoPane"><i class="bi bi-person me-1"></i>Profile Info</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pmChangePassPane"><i class="bi bi-key me-1"></i>Change Password</button></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="pmProfileInfoPane">
+                            <div class="row g-2">
+                                <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Full Name</label><input type="text" class="form-control bg-light border-0 form-control-sm" id="pmProfileName"></div>
+                                <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Official Email</label><input type="email" class="form-control bg-light border-0 form-control-sm" id="pmProfileEmail"></div>
+                                <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Mobile Number</label><input type="tel" class="form-control bg-light border-0 form-control-sm" id="pmProfileMobile"></div>
+                                <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Designation</label><input type="text" class="form-control bg-light border-0 form-control-sm" value="Project Manager" readonly></div>
+                                <div class="col-12 text-end mt-2"><button type="button" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold" onclick="savePmProfile()"><i class="bi bi-check-circle me-1"></i>Update Profile</button></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="pmChangePassPane">
+                            <div class="mb-2"><label class="small fw-bold text-muted mb-1">Current Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2 small" id="pmCurrPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('pmCurrPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-pmCurrPass"></i></span></div></div>
+                            <div class="mb-2"><label class="small fw-bold text-muted mb-1">New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2 small" id="pmNewPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('pmNewPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-pmNewPass"></i></span></div></div>
+                            <div class="mb-3"><label class="small fw-bold text-muted mb-1">Confirm New Password</label><div class="input-group bg-light" style="border-radius:10px;"><input type="password" class="form-control border-0 bg-transparent py-2 small" id="pmConfPass"><span class="input-group-text border-0 bg-transparent" onclick="togglePass('pmConfPass')" style="cursor:pointer;"><i class="bi bi-eye text-muted" id="eye-pmConfPass"></i></span></div></div>
+                            <button type="button" class="btn btn-dark w-100 rounded-pill fw-bold mt-1 btn-sm" onclick="submitPmPasswordChange()">Update Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal fade" id="assignTLModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+                <div class="modal-header bg-light border-0 py-3 px-4"><h6 class="fw-bold mb-0 text-primary"><i class="bi bi-person-plus-fill me-2"></i>Assign TL + Team Members</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <form id="assignTLForm">
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing:1px;">Step 1: Select Project</label><select class="form-select border-0 bg-light py-2" id="assignProjectSelect" style="border-radius:12px;" required onchange="loadAssignProjectInfo()"><option value="" disabled selected>-- Choose Project --</option></select></div>
+                        <div id="assignProjPreview" style="display:none;" class="mb-3">
+                            <div class="card bg-light border-0 p-3 shadow-sm rounded-4">
+                                <div class="row g-2">
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Code</label><div id="atp-code" class="fw-bold small">—</div></div>
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Client</label><div id="atp-client" class="fw-bold small">—</div></div>
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Deadline</label><div id="atp-deadline" class="fw-bold small">—</div></div>
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Est. Hours</label><div id="atp-hours" class="fw-bold small">—</div></div>
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Priority</label><div id="atp-priority" class="fw-bold small">—</div></div>
+                                    <div class="col-md-4"><label class="small text-secondary fw-bold">Status</label><div id="atp-status" class="fw-bold small">—</div></div>
+                                    <div class="col-12"><label class="small text-secondary fw-bold">Description</label><div id="atp-desc" class="small">—</div></div>
+                                    <div class="col-12"><label class="small text-secondary fw-bold">Files</label><div id="atp-files">—</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing:1px;">Step 2: Select Task</label><select class="form-select border-0 bg-light py-2" id="assignTaskSelect" style="border-radius:12px;" required><option value="" disabled selected>-- Choose Task --</option></select></div>
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing:1px;">Step 3: Assign Team Lead</label><select class="form-select border-0 bg-light py-2" id="assignTLSelect" style="border-radius:12px;" required><option value="" disabled selected>-- Choose TL --</option></select></div>
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-2 text-uppercase d-flex justify-content-between" style="letter-spacing:1px;">Step 4: Select Team Members<span class="badge bg-primary-subtle text-primary rounded-pill" id="chipCount">0 selected</span></label><div class="d-flex flex-wrap gap-2 mb-3" id="teamChipsContainer"></div></div>
+                        <div class="mt-4"><button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold shadow">Confirm Assignment</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
+                <div class="modal-header bg-light py-2 px-3"><h6 class="fw-bold mb-0"><i class="bi bi-arrow-repeat me-2"></i>Update Task Status</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <h6 id="updatingTaskName" class="text-primary fw-bold mb-3">Updating: --</h6>
+                    <form id="statusUpdateForm">
+                        <input type="hidden" id="hiddenTaskId">
+                        <input type="hidden" id="hiddenDbTaskId">
+                        <div class="mb-3"><label class="small fw-bold text-muted mb-1">Select New Status</label><select class="form-select form-select-sm bg-light border-0" id="newTaskStatus"><option value="Pending">Pending</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option></select></div>
+                        <div class="d-flex justify-content-end gap-2"><button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Save Status</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
+                <div class="modal-header bg-primary text-white py-2 px-3"><h6 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Task</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <form id="editTaskForm">
+                        <input type="hidden" id="editTaskIndex">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Task Name</label><input type="text" class="form-control bg-light border-0" id="etName"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Project</label><input type="text" class="form-control bg-light border-0" id="etProject" readonly></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Assigned TL</label><input type="text" class="form-control bg-light border-0" id="etTl"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Assigned Developer</label><input type="text" class="form-control bg-light border-0" id="etDev"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Deadline</label><input type="date" class="form-control bg-light border-0" id="etDeadline"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Priority</label><select class="form-select bg-light border-0" id="etPriority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Status</label><select class="form-select bg-light border-0" id="etStatus"><option>Pending</option><option>In Progress</option><option>Completed</option></select></div>
+                            <div class="col-12 text-end mt-2"><button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary px-4 rounded-pill">Save Changes</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+
+    <div class="modal fade" id="viewTlModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
+                <div class="modal-header bg-light py-2 px-3"><h6 class="fw-bold mb-0"><i class="bi bi-person-badge me-2"></i>Team Leader Details</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-3">
+                    <p class="mb-1"><strong>Name:</strong> <span id="tlViewName">-</span></p>
+                    <p class="mb-1"><strong>Employee ID:</strong> <span id="tlViewEmpId">-</span></p>
+                    <p class="mb-1"><strong>Department:</strong> <span id="tlViewDept">-</span></p>
+                    <p class="mb-1"><strong>Phone:</strong> <span id="tlViewPhone">-</span></p>
+                    <p class="mb-1"><strong>Experience:</strong> <span id="tlViewExp">-</span></p>
+                    <p class="mb-1"><strong>Active Projects:</strong> <span id="tlViewProjects">0</span></p>
+                    <div class="mt-3 d-flex justify-content-end gap-2">
+                        <button class="btn btn-light btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                        <button class="btn btn-dark btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editTlModal"><i class="bi bi-pencil-square me-1"></i>Edit TL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editTlModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
+                <div class="modal-header bg-light py-2 px-3"><h6 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Team Leader</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-3">
+                    <form id="editTlForm">
+                        <input type="hidden" id="editTlRowIndex">
+                        <div class="row g-2">
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Full Name</label><input type="text" id="editTlName" class="form-control form-control-sm bg-light border-0"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Employee ID</label><input type="text" id="editTlEmpId" class="form-control form-control-sm bg-light border-0"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Department</label><input type="text" id="editTlDept" class="form-control form-control-sm bg-light border-0"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Phone</label><input type="text" id="editTlPhone" class="form-control form-control-sm bg-light border-0"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Experience (Years)</label><input type="text" id="editTlExp" class="form-control form-control-sm bg-light border-0"></div>
+                            <div class="col-md-6"><label class="small fw-bold text-muted mb-1">Active Projects</label><input type="text" id="editTlProjects" class="form-control form-control-sm bg-light border-0"></div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold mt-3 btn-sm">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    /* Fix all Swal popups to show centered */
+    const _origSwalFire = Swal.fire.bind(Swal);
+    Swal.fire = function(options, ...args) {
+        if (typeof options === 'object' && options !== null) {
+            // Only center if not explicitly a toast
+            if (!options.toast) {
+                options.position = options.position || 'center';
+            }
+            // Dark background for error/warning
+            if (!options.background) {
+                options.background = '#fff';
+            }
+        }
+        return _origSwalFire(options, ...args);
+    };
+    </script>
+
+<script src="api.js"></script>
+<script>
+async function doLogout() { await Auth.logout(); window.location.href = window.location.origin; }
+/* ============================================================
+   API — all data comes from Flask backend
+============================================================ */
+let projectsData    = [];   // assigned projects for this PM
+let teamMembersData = [];   // employees from DB
+let tasksData       = [];   // tasks from DB
+let tlData          = [];   // team leaders from DB
+let gridRowCount    = 0;
+let taskFileStores  = {};
+let currentMemberIndex = -1;
+
+/* ============================================================
+   INIT — load all data from backend
+============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadAllPMData();
+    renderProjectPills();
+    renderTaskMonitor();
+    renderMasterRepo();
+    renderTeamGrid();
+    refreshGridProjectDropdown();
+    addGridRow();
+});
+
+async function loadAllPMData() {
+    try {
+        // First check session — redirect if not logged in
+        const me = await Auth.me();
+        if (!me.success) { window.location.href = window.location.origin; return; }
+        if (me.data.role !== 'pm') { window.location.href = window.location.origin; return; }
+
+        const [projRes, empRes, taskRes, tlRes] = await Promise.all([
+            Projects.list(),
+            Employees.list(),
+            Tasks.list(),
+            TL.list(),
+        ]);
+
+        if (projRes.success) {
+            projectsData = projRes.data.map(p => ({
+                id:       p.id,
+                code:     p.code,
+                name:     p.name,
+                client:   p.client,
+                assigned: p.assigned,
+                deadline: p.deadline,
+                hours:    p.hours,
+                priority: p.priority,
+                status:   p.status,
+                desc:     p.desc,
+                files:    p.files || [],
+                progress: p.progress || 0,
+            }));
+        }
+
+        if (empRes.success) {
+            teamMembersData = empRes.data.map(e => ({
+                id:           e.emp_id || e.id,
+                _dbId:        e.id,
+                name:         e.name,
+                role:         e.role,
+                skills:       e.skills ? e.skills.split(',').map(s=>s.trim()).filter(Boolean) : [],
+                dept:         e.dept,
+                email:        e.officialEmail,
+                mobile:       e.mobile || '',
+                tasks:        0,
+                availability: 80,
+            }));
+        }
+
+        if (taskRes.success) {
+            tasksData = taskRes.data.map(t => ({
+                _dbId:       t.id,
+                id:          t.code,
+                name:        t.name,
+                project:     t.project_name,
+                projectCode: t.project_code,
+                tl:          t.assigned_tl || '—',
+                dev:         t.assigned_dev || '—',
+                deadline:    fromDisplayDate(t.deadline),
+                priority:    t.priority,
+                status:      t.status,
+                progress:    t.progress || 0,
+            }));
+        }
+
+        if (tlRes.success) {
+            tlData = tlRes.data;
+            renderTlTable();
+        }
+
+        // Load PM's own profile from users table via /api/auth/me + employees endpoint
+        // me already has name from session
+        document.getElementById('topbarName').textContent          = me.data.name;
+        document.getElementById('profileNameDisplay').textContent  = me.data.name;
+        document.getElementById('pmProfileName').value             = me.data.name;
+
+        // Load PM's full details from project_managers table
+        const pmListRes = await PMs.list();
+        if (pmListRes.success) {
+            const myPm = pmListRes.data.find(p =>
+                p.name === me.data.name || p.empId === me.data.emp_id
+            );
+            if (myPm) {
+                document.getElementById('pmProfileEmail').value  = myPm.email || '';
+                document.getElementById('pmProfileMobile').value = myPm.mobile || '';
+            }
+        }
+
+        refreshGridProjectDropdown();
+        refreshAssignDropdowns();
+
+    } catch(err) {
+        console.warn('PM data load error:', err);
+        Swal.fire({icon:'warning', title:'Backend not reachable', text:'Make sure Flask is running on port 5000', confirmButtonColor:'#6366f1'});
+    }
+}
+
+/* ============================================================
+   SECTION NAVIGATION
+============================================================ */
+document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const key = this.getAttribute('data-section');
+        showSection(key);
+        const sidebar = document.getElementById('pmSidebar');
+        if (window.innerWidth <= 768 && sidebar.classList.contains('active')) sidebar.classList.remove('active');
+    });
+});
+
+function showSection(name) {
+    document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+    const t = document.getElementById('section-' + name);
+    if (t) t.style.display = 'block';
+    document.querySelectorAll('.nav-link[data-section]').forEach(l => {
+        l.classList.toggle('active', l.getAttribute('data-section') === name);
+    });
+    if (name === 'team') renderTeamGrid();
+    if (name === 'tasks') renderMasterRepo();
+    if (name === 'create-task-grid') refreshGridProjectDropdown();
+}
+
+document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
+    document.getElementById('pmSidebar').classList.toggle('active');
+});
+
+/* ============================================================
+   DATE HELPERS
+============================================================ */
+function toDisplayDate(str) {
+    if (!str) return '—';
+    if (str.includes('/')) return str;
+    const [y,m,d] = str.split('-');
+    return d+'/'+m+'/'+y.slice(2);
+}
+function fromDisplayDate(str) {
+    if (!str || str==='—') return '';
+    const p = str.split('/');
+    if (p.length !== 3) return str;
+    return '20'+p[2]+'-'+p[1]+'-'+p[0];
+}
+
+/* ============================================================
+   PROJECT PILLS (Overview)
+============================================================ */
+function renderProjectPills(filter='') {
+    const container = document.getElementById('projectPillsContainer');
+    container.innerHTML = '';
+    const list = projectsData.filter(p =>
+        p.name.toLowerCase().includes(filter.toLowerCase()) ||
+        p.code.toLowerCase().includes(filter.toLowerCase())
+    );
+    if (!list.length) {
+        container.innerHTML = '<p class="text-muted small py-2 px-3">No projects assigned yet.</p>';
+        return;
+    }
+    list.forEach((p, idx) => {
+        const pct = p.progress || 0;
+        const barColor = pct >= 70 ? 'bg-success' : pct >= 40 ? 'bg-warning' : 'bg-danger';
+        const pill = document.createElement('div');
+        pill.className = 'bg-white project-pill position-relative';
+        pill.innerHTML = `
+            <span class="badge bg-primary-subtle text-primary mb-1">${p.code}</span>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-semibold mb-0" style="font-size:13px;">${p.name}</h6>
+                <span class="badge bg-success-subtle text-success border-0" style="font-size:10px;">${pct}%</span>
+            </div>
+            <small class="text-muted d-block mb-1" style="font-size:11px;">Deadline: ${p.deadline}</small>
+            <div class="progress mb-2" style="height:4px;"><div class="progress-bar ${barColor}" style="width:${pct}%;"></div></div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-light text-muted border" style="font-size:9px;">${p.status}</span>
+                <button class="btn btn-outline-primary btn-sm border-0 px-2 py-0" onclick="openProjDetail(${idx})"><i class="bi bi-eye-fill"></i> View</button>
+            </div>`;
+        container.appendChild(pill);
+    });
+}
+
+function filterProjectPills() { renderProjectPills(document.getElementById('projSearchBar').value); }
+
+function openProjDetail(idx) {
+    const p = projectsData[idx];
+    document.getElementById('dpCode').textContent     = p.code;
+    document.getElementById('dpName').textContent     = p.name;
+    document.getElementById('dpClient').textContent   = 'Client: ' + (p.client || '—');
+    document.getElementById('dpAssigned').textContent = p.assigned;
+    document.getElementById('dpDeadline').textContent = p.deadline;
+    document.getElementById('dpHours').textContent    = p.hours || '—';
+    document.getElementById('dpPriority').textContent = p.priority || '—';
+    document.getElementById('dpDesc').textContent     = p.desc || '—';
+    document.getElementById('dpProgressBar').style.width   = (p.progress||0)+'%';
+    document.getElementById('dpProgressText').textContent  = (p.progress||0)+'% complete';
+    const filesEl = document.getElementById('dpFiles');
+    filesEl.innerHTML = p.files && p.files.length
+        ? p.files.map(f => {
+            const fn = typeof f === 'object' ? (f.label || f.file_label) : f;
+            const icon = String(fn).endsWith('.pdf') ? 'bi-file-pdf text-danger' : String(fn).endsWith('.xlsx') ? 'bi-file-excel text-success' : 'bi-file-earmark text-secondary';
+            return `<span class="file-chip"><i class="bi ${icon} me-1"></i>${fn}</span>`;
+          }).join('') : '—';
+    document.getElementById('projDetailPanel').classList.add('show');
+    document.getElementById('projDetailPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function closeProjDetail() { document.getElementById('projDetailPanel').classList.remove('show'); }
+
+/* ============================================================
+   TASK MONITOR TABLE (Overview)
+============================================================ */
+function renderTaskMonitor(filter='') {
+    const body = document.getElementById('taskMonitorBody');
+    body.innerHTML = '';
+    const filtered = tasksData.filter(t =>
+        t.name.toLowerCase().includes(filter.toLowerCase()) ||
+        t.project.toLowerCase().includes(filter.toLowerCase())
+    );
+    filtered.forEach(t => {
+        const statusColor = t.status==='In Progress' ? 'background:#0ea5e9;color:#f0f9ff;' : t.status==='Completed' ? 'background:#22c55e;color:#fff;' : 'background:#facc15;color:#451a03;';
+        const tr = document.createElement('tr');
+        tr.className = 'task-card';
+        tr.setAttribute('data-task-id', t.id);
+        tr.setAttribute('data-db-id', t._dbId || '');
+        tr.setAttribute('data-task-name', t.name);
+        tr.setAttribute('data-status', t.status);
+        tr.innerHTML = `
+            <td class="ps-2" data-label="Task"><b class="d-block task-title">${t.name}</b><small class="text-secondary">${t.project}</small></td>
+            <td class="text-center" data-label="Project"><span class="badge bg-dark text-light border border-secondary px-2 py-1 rounded-pill" style="font-size:10px;">${t.projectCode}</span></td>
+            <td data-label="TL"><span style="font-size:12px;">${t.tl}</span></td>
+            <td data-label="Status"><span class="badge rounded-pill" style="${statusColor} font-size:10px;">${t.status}</span></td>
+            <td class="text-end pe-2" data-label="Action">
+                <button class="btn btn-sm btn-outline-light rounded-pill border-secondary px-3 py-1" style="font-size:11px;" onclick="openUpdateModal(this)">Update</button>
+            </td>`;
+        body.appendChild(tr);
+    });
+}
+
+function filterTaskMonitor(v) { renderTaskMonitor(v); }
+
+/* ============================================================
+   MASTER TASK REPOSITORY
+============================================================ */
+function renderMasterRepo(filter='') {
+    const body = document.getElementById('masterRepoBody');
+    body.innerHTML = '';
+    const filtered = tasksData.filter(t =>
+        t.name.toLowerCase().includes(filter.toLowerCase()) ||
+        t.id.toLowerCase().includes(filter.toLowerCase()) ||
+        t.project.toLowerCase().includes(filter.toLowerCase())
+    );
+    document.getElementById('repoTotalBadge').textContent = filtered.length + ' Total';
+    filtered.forEach(t => {
+        const realIdx = tasksData.indexOf(t);
+        const priorityBg = t.priority==='High' ? 'bg-danger-subtle text-danger' : t.priority==='Medium' ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success';
+        const statusBg = t.status==='In Progress' ? 'bg-info-subtle text-info' : t.status==='Completed' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary';
+        const tr = document.createElement('tr');
+        tr.className = 'task-card';
+        tr.setAttribute('data-task-id', t.id);
+        tr.setAttribute('data-db-id', t._dbId || '');
+        tr.setAttribute('data-task-name', t.name);
+        tr.setAttribute('data-status', t.status);
+        tr.innerHTML = `
+            <td class="ps-4" data-label="Task ID"><span class="fw-bold">#${t.id}</span></td>
+            <td data-label="Task"><b class="task-title">${t.name}</b></td>
+            <td data-label="Project"><small class="text-muted">${t.projectCode}</small></td>
+            <td data-label="TL">${t.tl}</td>
+            <td data-label="Dev">${t.dev}</td>
+            <td data-label="Deadline">${toDisplayDate(t.deadline)}</td>
+            <td data-label="Priority"><span class="badge ${priorityBg} rounded-pill px-2 py-1" style="font-size:11px;">${t.priority}</span></td>
+            <td data-label="Status"><span class="badge ${statusBg} rounded-pill px-2 py-1" style="font-size:11px;">${t.status}</span></td>
+            <td class="text-end pe-4" data-label="Actions">
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0 me-1" onclick="openEditTask(${realIdx})"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-dark rounded-pill px-2 py-0 me-1" onclick="openUpdateModal(this)"><i class="bi bi-arrow-repeat"></i></button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0" onclick="deleteTask(${realIdx})"><i class="bi bi-trash"></i></button>
+            </td>`;
+        body.appendChild(tr);
+    });
+}
+
+function filterMasterRepo(v) { renderMasterRepo(v); }
+
+function openEditTask(idx) {
+    const t = tasksData[idx];
+    document.getElementById('editTaskIndex').value = idx;
+    document.getElementById('etName').value     = t.name;
+    document.getElementById('etProject').value  = t.project;
+    document.getElementById('etTl').value        = t.tl === '—' ? '' : t.tl;
+    document.getElementById('etDev').value       = t.dev === '—' ? '' : t.dev;
+    document.getElementById('etDeadline').value  = t.deadline;
+    document.getElementById('etPriority').value  = t.priority;
+    document.getElementById('etStatus').value    = t.status;
+    new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+}
+
+async function deleteTask(idx) {
+    const t = tasksData[idx];
+    const r = await Swal.fire({ title:'Delete Task?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete' });
+    if (r.isConfirmed) {
+        if (t._dbId) {
+            const res = await Tasks.delete(t._dbId);
+            if (!res.success) { Swal.fire({icon:'error', title: res.error}); return; }
+        }
+        tasksData.splice(idx,1);
+        renderMasterRepo(); renderTaskMonitor();
+        Swal.fire({ icon:'success', title:'Deleted!', timer:1200, showConfirmButton:false });
+    }
+}
+
+document.getElementById('editTaskForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editTaskIndex').value);
+    const t   = tasksData[idx];
+    const payload = {
+        task_name:   document.getElementById('etName').value,
+        assigned_tl: document.getElementById('etTl').value,
+        assigned_dev:document.getElementById('etDev').value,
+        deadline:    document.getElementById('etDeadline').value,
+        priority:    document.getElementById('etPriority').value,
+        status:      document.getElementById('etStatus').value,
+    };
+    if (t._dbId) {
+        const res = await Tasks.update(t._dbId, payload);
+        if (!res.success) { Swal.fire({icon:'error', title: res.error}); return; }
+    }
+    Object.assign(tasksData[idx], { name:payload.task_name, tl:payload.assigned_tl||'—', dev:payload.assigned_dev||'—', deadline:payload.deadline, priority:payload.priority, status:payload.status });
+    bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+    renderMasterRepo(); renderTaskMonitor();
+    Swal.fire({ icon:'success', title:'Task Updated!', timer:1500, showConfirmButton:false });
+});
+
+/* ============================================================
+   TEAM MEMBERS
+============================================================ */
+function renderTeamGrid(filter='') {
+    const grid = document.getElementById('teamMembersGrid');
+    grid.innerHTML = '';
+    const colors = ['#6366f1','#f59e0b','#22c55e','#3b82f6','#ec4899','#a855f7'];
+    const filtered = teamMembersData.filter(m =>
+        m.name.toLowerCase().includes(filter.toLowerCase()) ||
+        m.role.toLowerCase().includes(filter.toLowerCase())
+    );
+    filtered.forEach((m, i) => {
+        const realIdx = teamMembersData.indexOf(m);
+        const col = document.createElement('div');
+        col.className = 'col-md-4';
+        const color    = colors[i % colors.length];
+        const initials = m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const skillChips = m.skills.map(s=>`<span class="badge bg-light text-dark border me-1" style="font-size:10px;">${s}</span>`).join('');
+        col.innerHTML = `
+            <div class="emp-card" onclick="openMemberDetail(${realIdx})">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width:48px;height:48px;background:${color};font-size:15px;flex-shrink:0;">${initials}</div>
+                    <div><h6 class="mb-0 fw-bold">${m.name}</h6><small class="text-muted">${m.role}</small></div>
+                </div>
+                <div class="small text-muted mb-2">
+                    <p class="mb-1"><i class="bi bi-envelope me-2 text-primary"></i>${m.email}</p>
+                    <p class="mb-0"><i class="bi bi-building me-2 text-primary"></i>${m.dept}</p>
+                </div>
+                <div class="mb-2">${skillChips || '<span class="text-muted small">No skills listed</span>'}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Tasks: <b>${m.tasks}</b></small>
+                    <small class="text-muted">Avail: <b class="${m.availability >= 60 ? 'text-success' : 'text-warning'}">${m.availability}%</b></small>
+                </div>
+                <div class="progress mt-2" style="height:4px;"><div class="progress-bar bg-success" style="width:${m.availability}%;"></div></div>
+            </div>`;
+        grid.appendChild(col);
+    });
+}
+
+function filterTeamMembers(v) { renderTeamGrid(v); }
+
+function openMemberDetail(idx) {
+    currentMemberIndex = idx;
+    const m = teamMembersData[idx];
+    document.getElementById('memberDetailContent').innerHTML = `
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Employee ID</small><span class="fw-bold">${m.id}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Full Name</small><span class="fw-bold">${m.name}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Role</small><span class="fw-bold">${m.role}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Email</small><span class="fw-bold">${m.email}</span></div></div>
+        <div class="col-md-6"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Mobile</small><span class="fw-bold">${m.mobile||'—'}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Department</small><span class="fw-bold">${m.dept}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Active Tasks</small><span class="fw-bold">${m.tasks}</span></div></div>
+        <div class="col-md-4"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-1">Availability</small><span class="fw-bold ${m.availability>=60?'text-success':'text-warning'}">${m.availability}%</span></div></div>
+        <div class="col-12"><div class="bg-light rounded-3 p-3"><small class="text-muted fw-bold d-block mb-2">Skills</small>${m.skills.map(s=>`<span class="badge bg-white text-dark border me-1 mb-1">${s}</span>`).join('')||'—'}</div></div>`;
+    document.getElementById('memberDetailPanel').classList.add('show');
+    document.getElementById('memberDetailPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function closeMemberDetail() {
+    document.getElementById('memberDetailPanel').classList.remove('show');
+    currentMemberIndex = -1;
+}
+
+/* ============================================================
+   ASSIGN TL MODAL
+============================================================ */
+function refreshAssignDropdowns() {
+    // Project dropdown
+    const projSel = document.getElementById('assignProjectSelect');
+    const cur = projSel.value;
+    projSel.innerHTML = '<option value="" disabled selected>-- Choose Project --</option>';
+    projectsData.forEach((p,i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = p.code + ' — ' + p.name;
+        projSel.appendChild(opt);
+    });
+    if (cur) projSel.value = cur;
+
+    // TL dropdown
+    const tlSel = document.getElementById('assignTLSelect');
+    tlSel.innerHTML = '<option value="" disabled selected>-- Choose TL --</option>';
+    tlData.forEach(tl => {
+        const o = document.createElement('option');
+        o.value = tl.id; o.textContent = tl.name + ' (' + tl.department + ')';
+        tlSel.appendChild(o);
+    });
+    if (!tlData.length) {
+        const o = document.createElement('option'); o.disabled=true; o.textContent='No TL added yet';
+        tlSel.appendChild(o);
+    }
+
+    // Task dropdown
+    const taskSel = document.getElementById('assignTaskSelect');
+    taskSel.innerHTML = '<option value="" disabled selected>-- Choose Task --</option>';
+    tasksData.forEach((t,i) => {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = '#'+t.id+' — '+t.name+' ('+t.projectCode+')';
+        taskSel.appendChild(o);
+    });
+
+    renderTeamChips();
+}
+
+document.getElementById('assignTLModal').addEventListener('show.bs.modal', () => {
+    refreshAssignDropdowns();
+    document.getElementById('assignProjPreview').style.display = 'none';
+});
+
+function loadAssignProjectInfo() {
+    const idx = parseInt(document.getElementById('assignProjectSelect').value);
+    const p   = projectsData[idx]; if (!p) return;
+    document.getElementById('assignProjPreview').style.display = 'block';
+    document.getElementById('atp-code').textContent     = p.code;
+    document.getElementById('atp-client').textContent   = p.client || '—';
+    document.getElementById('atp-deadline').textContent = p.deadline;
+    document.getElementById('atp-hours').textContent    = p.hours || '—';
+    document.getElementById('atp-priority').textContent = p.priority || '—';
+    document.getElementById('atp-status').textContent   = p.status || '—';
+    document.getElementById('atp-desc').textContent     = p.desc || '—';
+    document.getElementById('atp-files').innerHTML = p.files && p.files.length
+        ? p.files.map(f=>`<span class="file-chip"><i class="bi bi-file-earmark me-1"></i>${typeof f==='object'?(f.label||f.file_label):f}</span>`).join('')
+        : '—';
+}
+
+function renderTeamChips() {
+    const container = document.getElementById('teamChipsContainer');
+    container.innerHTML = '';
+    const colors = ['#6366f1','#10b981','#f59e0b','#3b82f6','#ec4899'];
+    teamMembersData.forEach((m,i) => {
+        const chip = document.createElement('div');
+        chip.className = 'team-chip';
+        chip.setAttribute('data-name', m.name);
+        chip.innerHTML = `<span class="avatar" style="background:${colors[i%colors.length]}">${m.name.charAt(0)}</span> ${m.name} <small>${m.role}</small>`;
+        chip.onclick = () => toggleChip(chip);
+        container.appendChild(chip);
+    });
+}
+
+let selectedTeamMembers = [];
+function toggleChip(el) {
+    const name = el.dataset.name;
+    el.classList.toggle('selected');
+    if (el.classList.contains('selected')) selectedTeamMembers.push(name);
+    else selectedTeamMembers = selectedTeamMembers.filter(m => m !== name);
+    document.getElementById('chipCount').innerText = selectedTeamMembers.length + ' selected';
+}
+
+document.getElementById('assignTLForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (selectedTeamMembers.length === 0) {
+        Swal.fire({ icon:'warning', title:'Select Team!', text:'Please select at least one team member.' }); return;
+    }
+    const taskIdx  = parseInt(document.getElementById('assignTaskSelect').value);
+    const tlOptEl  = document.getElementById('assignTLSelect');
+    const tlName   = tlOptEl.options[tlOptEl.selectedIndex]?.text || '—';
+    const task     = tasksData[taskIdx];
+
+    if (task) {
+        const payload = { assigned_tl: tlName, assigned_dev: selectedTeamMembers[0] };
+        if (task._dbId) await Tasks.update(task._dbId, payload);
+        Object.assign(tasksData[taskIdx], { tl: tlName, dev: selectedTeamMembers[0] });
+        renderMasterRepo(); renderTaskMonitor();
+    }
+
+    Swal.fire({ icon:'success', title:'Task Assigned!', html:`TL: <b>${tlName}</b><br>Team: ${selectedTeamMembers.join(', ')}` });
+    bootstrap.Modal.getInstance(document.getElementById('assignTLModal')).hide();
+    this.reset();
+    document.querySelectorAll('.team-chip.selected').forEach(c => c.classList.remove('selected'));
+    selectedTeamMembers = [];
+    document.getElementById('chipCount').innerText = '0 selected';
+    document.getElementById('assignProjPreview').style.display = 'none';
+});
+
+/* ============================================================
+   BULK TASK CREATION GRID
+============================================================ */
+function refreshGridProjectDropdown() {
+    const sel = document.getElementById('gridProject');
+    sel.innerHTML = '<option selected disabled>-- Choose Project --</option>';
+    projectsData.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id; o.textContent = p.code + ' — ' + p.name;
+        sel.appendChild(o);
+    });
+}
+
+function autoCalcGridHours(row) {
+    const assigned = row.querySelector('.grid-assigned')?.value;
+    const deadline = row.querySelector('.grid-deadline')?.value;
+    const hoursInput = row.querySelector('.grid-hours');
+    if (assigned && deadline && hoursInput) {
+        const a = new Date(assigned), d = new Date(deadline);
+        if (d > a) {
+            const totalDays = Math.ceil((d - a) / (1000*60*60*24));
+            hoursInput.value = Math.round(totalDays * 5 / 7) * 8;
+        }
+    }
+}
+
+function filterDevsBySkill(row) {
+    const skill  = row.querySelector('.grid-skills')?.value.trim().toLowerCase();
+    const devSel = row.querySelector('.task-assignee');
+    if (!devSel) return;
+    devSel.innerHTML = '<option value="" disabled selected>Select Dev</option>';
+    const filtered = skill
+        ? teamMembersData.filter(m => m.skills.some(s => s.toLowerCase().includes(skill)))
+        : teamMembersData;
+    filtered.forEach(m => {
+        const o = document.createElement('option');
+        o.textContent = m.name + ' (' + m.role + ')';
+        devSel.appendChild(o);
+    });
+}
+
+function addGridRow() {
+    gridRowCount++;
+    const tbody = document.getElementById('taskGridBody');
+    const tr    = document.createElement('tr');
+    const rowIdx = gridRowCount;
+    taskFileStores[rowIdx] = [];
+
+    tr.innerHTML = `
+        <td data-label="#">${gridRowCount}</td>
+        <td data-label="Task Name"><input type="text" class="form-control form-control-sm bg-light border-0 task-name" placeholder="Task name"></td>
+        <td data-label="Task ID"><input type="text" class="form-control form-control-sm bg-light border-0 fw-bold task-code" value="#TK-${100+gridRowCount}" readonly></td>
+        <td data-label="Assign Date"><input type="date" class="form-control form-control-sm bg-light border-0 grid-assigned" onchange="autoCalcGridHours(this.closest('tr'))"></td>
+        <td data-label="Deadline"><input type="date" class="form-control form-control-sm bg-light border-0 grid-deadline task-deadline" onchange="autoCalcGridHours(this.closest('tr'))"></td>
+        <td data-label="Hours"><input type="text" class="form-control form-control-sm bg-light border-0 grid-hours" placeholder="Auto" readonly></td>
+        <td data-label="Expertise">
+            <select class="form-select form-select-sm bg-light border-0 task-priority">
+                <optgroup label="Development"><option>Lead Architect</option><option selected>Senior Full Stack</option><option>Junior Web Dev</option></optgroup>
+                <optgroup label="Design &amp; QA"><option>UI/UX Designer</option><option>QA Tester</option></optgroup>
+            </select>
+        </td>
+        <td data-label="Department">
+            <select class="form-select form-select-sm bg-light border-0 task-dept">
+                <option>IT / Development</option><option>Marketing</option><option>Operations</option><option>Infrastructure</option>
+            </select>
+        </td>
+        <td data-label="Skills"><input type="text" class="form-control form-control-sm bg-light border-0 grid-skills" placeholder="e.g. Python" oninput="filterDevsBySkill(this.closest('tr'))"></td>
+        <td data-label="Assign Dev">
+            <select class="form-select form-select-sm task-assignee bg-light border-0">
+                <option selected disabled>Select Dev</option>
+                ${teamMembersData.map(m=>`<option>${m.name} (${m.role})</option>`).join('')}
+            </select>
+        </td>
+        <td data-label="Files">
+            <label class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0 mb-1" style="font-size:11px;cursor:pointer;">
+                <i class="bi bi-paperclip"></i> Choose
+                <input type="file" hidden multiple onchange="handleGridFileUpload(this, ${rowIdx})">
+            </label>
+            <div id="gridFileChips-${rowIdx}" class="d-flex flex-wrap gap-1 mt-1"></div>
+        </td>
+        <td class="text-center" data-label="Action">
+            <button class="btn btn-outline-danger btn-sm px-2 py-0" onclick="removeGridRow(this)"><i class="bi bi-trash"></i></button>
+        </td>`;
+    tbody.appendChild(tr);
+    filterDevsBySkill(tr);
+}
+
+function handleGridFileUpload(input, rowIdx) {
+    if (!taskFileStores[rowIdx]) taskFileStores[rowIdx] = [];
+    const container = document.getElementById('gridFileChips-'+rowIdx);
+    Array.from(input.files).forEach(file => {
+        if (taskFileStores[rowIdx].includes(file.name)) return;
+        taskFileStores[rowIdx].push(file.name);
+        const chip = document.createElement('span');
+        chip.className = 'file-chip'; chip.style = 'font-size:10px;';
+        chip.innerHTML = `<i class="bi bi-file-earmark me-1"></i>${file.name}<button class="remove-file" onclick="this.parentElement.remove();taskFileStores[${rowIdx}]=taskFileStores[${rowIdx}].filter(f=>f!=='${file.name.replace(/'/g,'')}')">×</button>`;
+        container.appendChild(chip);
+    });
+    input.value = '';
+}
+
+function removeGridRow(btn) {
+    btn.closest('tr').remove();
+    const rows = document.querySelectorAll('#taskGridBody tr');
+    gridRowCount = 0;
+    rows.forEach((r,i) => { gridRowCount=i+1; r.children[0].textContent=gridRowCount; });
+}
+
+async function deployGridTasks() {
+    const projectId = document.getElementById('gridProject').value;
+    if (!projectId || String(projectId).includes('Choose')) { Swal.fire({icon:'error',title:'Select a project first!'}); return; }
+    const rows = document.querySelectorAll('#taskGridBody tr');
+    if (!rows.length) { Swal.fire({icon:'error',title:'No Tasks',text:'Add at least one task row.'}); return; }
+
+    const newTasks = [];
+    const proj = projectsData.find(p => p.id == projectId);
+    const projCode = proj ? proj.code : '';
+    const projName = proj ? proj.name : '';
+
+    // Get next code from DB
+    const codeRes = await Tasks.nextCode();
+    let nextNum = codeRes.success ? codeRes.data.next_num : Date.now();
+
+    rows.forEach(row => {
+        const name    = row.querySelector('.task-name')?.value?.trim() || '';
+        const dev     = row.querySelector('.task-assignee')?.value || '—';
+        const deadline= row.querySelector('.grid-deadline')?.value || '';
+        const assigned= row.querySelector('.grid-assigned')?.value || '';
+        const hours   = row.querySelector('.grid-hours')?.value || '';
+        const expertise = row.querySelector('.task-priority')?.value || 'Medium';
+        const dept    = row.querySelector('.task-dept')?.value || '';
+        const skills  = row.querySelector('.grid-skills')?.value || '';
+        const taskCode = 'TK-' + String(nextNum).padStart(3,'0');
+        if (name) {
+            newTasks.push({ task_code:taskCode, task_name:name, project_id:parseInt(projectId), assigned_dev:dev, date_assigned:assigned||null, deadline:deadline||null, estimated_hours:hours, expertise_level:expertise, department:dept, required_skills:skills, priority:'Medium', status:'Pending', _local:{ id:taskCode, name, project:projName, projectCode:projCode, tl:'—', dev, deadline, priority:'Medium', status:'Pending', progress:0 } });
+            nextNum++;
+        }
+    });
+
+    if (!newTasks.length) { Swal.fire({icon:'error',title:'Add task names first!'}); return; }
+
+    const payload = newTasks.map(t => { const {_local, ...rest} = t; return rest; });
+    const res = await Tasks.bulk({ tasks: payload });
+
+    if (res.success) {
+        newTasks.forEach(t => tasksData.push({...t._local, _dbId: null}));
+        Swal.fire({ icon:'success', title:'Deployed!', text:newTasks.length+' task(s) saved to database.', confirmButtonColor:'#059669' }).then(() => {
+            showSection('overview');
+            document.getElementById('gridProject').value = '';
+            document.getElementById('taskGridBody').innerHTML = '';
+            gridRowCount = 0;
+            taskFileStores = {};
+            addGridRow();
+            renderTaskMonitor();
+            renderMasterRepo();
+        });
+    } else {
+        Swal.fire({icon:'error', title:'Deploy failed', text: res.error});
+    }
+}
+
+/* ============================================================
+   UPDATE TASK STATUS MODAL
+============================================================ */
+function openUpdateModal(button) {
+    const row = button.closest('tr');
+    if (!row) return;
+    document.getElementById('updatingTaskName').innerText = 'Updating: ' + (row.getAttribute('data-task-name') || '—');
+    document.getElementById('hiddenTaskId').value  = row.getAttribute('data-task-id') || '';
+    document.getElementById('hiddenDbTaskId').value = row.getAttribute('data-db-id') || '';
+    const status = row.getAttribute('data-status');
+    const sel = document.getElementById('newTaskStatus');
+    if (status) sel.value = status;
+    new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
+}
+
+document.getElementById('statusUpdateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const taskCode = document.getElementById('hiddenTaskId').value;
+    const dbId     = document.getElementById('hiddenDbTaskId').value;
+    const newStatus= document.getElementById('newTaskStatus').value;
+
+    if (dbId) await Tasks.update(parseInt(dbId), { status: newStatus });
+
+    const t = tasksData.find(t => t.id === taskCode);
+    if (t) t.status = newStatus;
+    document.querySelectorAll(`.task-card[data-task-id="${taskCode}"]`).forEach(r => r.setAttribute('data-status', newStatus));
+
+    bootstrap.Modal.getInstance(document.getElementById('updateStatusModal')).hide();
+    renderTaskMonitor(); renderMasterRepo();
+    Swal.fire({ icon:'success', title:'Status Updated!', text:'Changed to '+newStatus, timer:1500, showConfirmButton:false });
+});
+
+/* ============================================================
+   ADD TL — saves to DB
+============================================================ */
+function renderTlTable() {
+    const tbody = document.getElementById('tlBody');
+    tbody.innerHTML = '';
+    tlData.forEach((tl, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td data-label="TL Name"><b>${tl.name}</b></td>
+            <td data-label="Employee ID">${tl.emp_id}</td>
+            <td data-label="Department">${tl.department||'—'}</td>
+            <td data-label="Phone">${tl.phone||'—'}</td>
+            <td data-label="Experience">${tl.experience||0} yrs</td>
+            <td data-label="Active Projects">0</td>
+            <td data-label="Action">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 me-1" onclick="viewTlDetails(${idx})">View</button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-2" onclick="deleteTl(${idx}, ${tl.id})"><i class="bi bi-trash"></i></button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+document.getElementById('addTlForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const payload = {
+        full_name:  document.getElementById('tlName').value,
+        emp_id:     document.getElementById('tlEmpId').value,
+        email:      document.getElementById('tlEmail').value,
+        phone:      document.getElementById('tlPhone').value,
+        department: document.getElementById('tlDept').value,
+        experience: document.getElementById('tlExp').value,
+    };
+    const res = await TL.create(payload);
+    if (res.success) {
+        tlData.push({ id: res.data.id, name: payload.full_name, emp_id: payload.emp_id, email: payload.email, phone: payload.phone, department: payload.department, experience: payload.experience });
+        renderTlTable();
+        refreshAssignDropdowns();
+        Swal.fire({ icon:'success', title:'TL Added!', timer:1500, showConfirmButton:false });
+        this.reset();
+    } else { Swal.fire({icon:'error', title: res.error}); }
+});
+
+async function deleteTl(idx, dbId) {
+    const r = await Swal.fire({title:'Delete TL?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete'});
+    if (r.isConfirmed) {
+        if (dbId) await TL.delete(dbId);
+        tlData.splice(idx, 1);
+        renderTlTable();
+        Swal.fire({ icon:'success', title:'Deleted!', timer:1000, showConfirmButton:false });
+    }
+}
+
+function viewTlDetails(idx) {
+    const tl = tlData[idx];
+    document.getElementById('tlViewName').innerText    = tl.name;
+    document.getElementById('tlViewEmpId').innerText   = tl.emp_id;
+    document.getElementById('tlViewDept').innerText    = tl.department||'—';
+    document.getElementById('tlViewPhone').innerText   = tl.phone||'—';
+    document.getElementById('tlViewExp').innerText     = tl.experience||0;
+    document.getElementById('tlViewProjects').innerText= '0';
+    document.getElementById('editTlName').value     = tl.name;
+    document.getElementById('editTlEmpId').value    = tl.emp_id;
+    document.getElementById('editTlDept').value     = tl.department||'';
+    document.getElementById('editTlPhone').value    = tl.phone||'';
+    document.getElementById('editTlExp').value      = tl.experience||0;
+    document.getElementById('editTlProjects').value = '0';
+    document.getElementById('editTlRowIndex').value = idx;
+    new bootstrap.Modal(document.getElementById('viewTlModal')).show();
+}
+
+document.getElementById('editTlForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editTlRowIndex').value);
+    const tl  = tlData[idx];
+    const payload = {
+        full_name:  document.getElementById('editTlName').value,
+        department: document.getElementById('editTlDept').value,
+        phone:      document.getElementById('editTlPhone').value,
+        experience: document.getElementById('editTlExp').value,
+    };
+    if (tl.id) await TL.update(tl.id, payload);
+    Object.assign(tlData[idx], { name: payload.full_name, department: payload.department, phone: payload.phone, experience: payload.experience });
+    renderTlTable();
+    bootstrap.Modal.getInstance(document.getElementById('editTlModal')).hide();
+    Swal.fire({ icon:'success', title:'TL Updated!', timer:1200, showConfirmButton:false });
+});
+
+/* ============================================================
+   PROFILE
+============================================================ */
+function pmPreviewImage(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('pmProfilePhoto').src  = e.target.result;
+        document.getElementById('pmProfileHeader').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    const fd = new FormData();
+    fd.append('photo', file);
+    Profile.uploadPhoto(fd).then(data => {
+        if (data.success) Swal.fire({icon:'success', title:'Photo saved!', timer:1200, showConfirmButton:false});
+        else Swal.fire({icon:'warning', title:'Upload failed', text: data.error});
+    });
+}
+
+async function savePmProfile() {
+    const name = document.getElementById('pmProfileName').value.trim();
+    if (!name) { Swal.fire({icon:'warning', title:'Name cannot be empty'}); return; }
+    const data = await Auth.updateMe({
+        full_name:      name,
+        official_email: document.getElementById('pmProfileEmail').value.trim(),
+        mobile:         document.getElementById('pmProfileMobile').value.trim(),
+    });
+    if (data.success) {
+        document.getElementById('profileNameDisplay').textContent = name;
+        document.getElementById('topbarName').textContent         = name;
+        Swal.fire({ icon:'success', title:'Profile Updated!', timer:1500, showConfirmButton:false });
+    } else { Swal.fire({icon:'error', title: data.error || 'Update failed'}); }
+}
+
+function togglePass(id) {
+    const inp = document.getElementById(id);
+    const eye = document.getElementById('eye-'+id);
+    if (!inp||!eye) return;
+    if (inp.type==='password') { inp.type='text'; eye.classList.replace('bi-eye','bi-eye-slash'); }
+    else { inp.type='password'; eye.classList.replace('bi-eye-slash','bi-eye'); }
+}
+
+async function submitPmPasswordChange() {
+    const c  = document.getElementById('pmCurrPass').value;
+    const n  = document.getElementById('pmNewPass').value;
+    const cf = document.getElementById('pmConfPass').value;
+    if (!c||!n||!cf) { Swal.fire({icon:'error',title:'All fields required!'}); return; }
+    if (n!==cf) { Swal.fire({icon:'warning',title:'Passwords do not match!'}); return; }
+    const data = await Profile.changePassword({ current_password: c, new_password: n });
+    if (data.success) {
+        Swal.fire({icon:'success',title:'Password Updated!',timer:1500,showConfirmButton:false}).then(()=>{
+            document.getElementById('pmCurrPass').value='';
+            document.getElementById('pmNewPass').value='';
+            document.getElementById('pmConfPass').value='';
+        });
+    } else { Swal.fire({icon:'error',title:data.error||'Failed'}); }
+}
+</script>
+</body>
+</html>

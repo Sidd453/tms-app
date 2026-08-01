@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>EMS - Experience the Future</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #020617;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .main-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(rgba(2, 6, 23, 0.6), rgba(2, 6, 23, 0.8)),
+                url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+            animation: slowZoom 20s infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .float-text {
+            display: inline-block;
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .top-nav {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-name {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #3b82f6;
+        }
+
+        #liveClock {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.05);
+            padding: 5px 13px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-login-trigger {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 9px 22px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: 0.4s;
+            white-space: nowrap;
+        }
+
+        .btn-login-trigger:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .content-area {
+            padding: 60px 24px 40px;
+            max-width: 900px;
+        }
+
+        .overlay-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .overlay-backdrop.active { display: block; }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 420px;
+            max-width: 100vw;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            box-shadow: -15px 0 40px rgba(0,0,0,0.4);
+            z-index: 1000;
+            transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .login-overlay.open { right: 0; }
+
+        .drawer-inner {
+            padding: 50px 36px 36px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
+
+        .panel { display: none; flex-direction: column; flex: 1; }
+        .panel.active { display: flex; }
+
+        .form-label-custom {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 18px;
+        }
+
+        .input-group-custom .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.3);
+            font-size: 1rem;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: white;
+            border-radius: 14px;
+            padding: 16px 48px 16px 44px;
+            font-size: 0.95rem;
+            transition: border 0.3s, background 0.3s;
+            outline: none;
+        }
+
+        .form-control-custom:focus {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .form-control-custom::placeholder { color: rgba(255,255,255,0.25); }
+
+        .toggle-pw {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, #3b82f6, #22c55e);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.3s, transform 0.2s;
+        }
+
+        .btn-main:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-ghost {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: white;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: #3b82f6;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .link-btn:hover { color: #60a5fa; }
+
+        .divider-text {
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            margin: 18px 0;
+            position: relative;
+        }
+
+        .divider-text::before, .divider-text::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 38%;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .divider-text::before { left: 0; }
+        .divider-text::after { right: 0; }
+
+        .otp-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .otp-box {
+            width: 52px;
+            height: 58px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+            outline: none;
+            transition: border 0.3s, background 0.3s;
+        }
+
+        .otp-box:focus {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,0.1);
+        }
+
+        .otp-box.filled {
+            border-color: #22c55e;
+            background: rgba(34,197,94,0.08);
+        }
+
+        .timer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        #timerCount { color: #f59e0b; font-weight: 700; }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+
+        .strength-label {
+            font-size: 0.72rem;
+            margin-top: 4px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .drawer-footer {
+            margin-top: auto;
+            padding-top: 24px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .role-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.19,1,0.22,1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 16px;
+        }
+
+        .role-card:hover { transform: translateY(-3px); }
+
+        .role-card.selected {
+            border-color: var(--role-color);
+            background: var(--role-bg);
+            box-shadow: 0 0 20px var(--role-glow);
+        }
+
+        .role-card.selected .role-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .role-icon-wrap {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 1.4rem;
+            background: var(--role-bg);
+            border: 1px solid var(--role-border);
+            transition: all 0.3s;
+        }
+
+        .role-card:hover .role-icon-wrap,
+        .role-card.selected .role-icon-wrap {
+            background: var(--role-color);
+            color: white !important;
+            border-color: transparent;
+        }
+
+        .role-card .role-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.3;
+        }
+
+        .role-card .role-subtitle {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.3);
+            margin-top: 4px;
+        }
+
+        .role-check {
+            position: absolute;
+            top: 8px; right: 10px;
+            width: 20px; height: 20px;
+            background: var(--role-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            color: white;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        .selected-role-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 6px 14px 6px 8px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 16px;
+        }
+
+        .selected-role-badge.show { display: inline-flex; }
+
+        .role-badge-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 576px) {
+            .top-nav { padding: 16px; }
+            .brand-name { font-size: 1.6rem; }
+            #liveClock { font-size: 0.7rem; padding: 4px 10px; }
+            .btn-login-trigger { padding: 8px 16px; font-size: 0.85rem; }
+            .content-area { padding: 40px 20px 30px; }
+            .content-area h1 { font-size: 2.4rem !important; }
+            .content-area p { font-size: 1rem !important; }
+            .login-overlay {
+                width: 100vw;
+                right: -100vw;
+                border-left: none;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .drawer-inner { padding: 36px 22px 28px; }
+            .otp-box { width: 44px; height: 52px; font-size: 1.2rem; }
+            .otp-row { gap: 8px; }
+        }
+
+        @media (max-width: 380px) {
+            .otp-box { width: 38px; height: 48px; font-size: 1.1rem; }
+            .otp-row { gap: 6px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-bg"></div>
+    <div class="overlay-backdrop" id="backdrop" onclick="closeDrawer()"></div>
+
+    <header class="top-nav container-fluid">
+        <div class="d-flex align-items-center gap-2 gap-sm-3 flex-wrap">
+            <div class="brand-name">TMS</div>
+            <div id="liveClock">Loading...</div>
+        </div>
+        <button class="btn btn-login-trigger" onclick="openDrawer()">
+            <i class="bi bi-door-open me-1 me-sm-2"></i><span>LOGIN</span>
+        </button>
+    </header>
+
+    <main class="container-fluid">
+        <div class="content-area">
+            <h1 class="display-2 fw-bold mb-4 float-text">
+                Empowering <br><span style="color: #3b82f6;">Modern Teams.</span>
+            </h1>
+            <p class="fs-4 text-white-50 mb-5" style="max-width: 650px;">
+                The most advanced workforce management engine. Seamlessly integrated, incredibly fast, and built for the modern era.
+            </p>
+            <div class="row g-4">
+                <div class="col-sm-6">
+                    <h5 class="fw-bold"><i class="bi bi-check-circle-fill text-primary me-2"></i> High Performance</h5>
+                    <p class="small text-white-50">Optimized for speed and efficiency in every task.</p>
+                </div>
+                <div class="col-sm-6">
+                    <h5 class="fw-bold"><i class="bi bi-shield-lock-fill text-success me-2"></i> Enterprise Security</h5>
+                    <p class="small text-white-50">Advanced protocols to keep your data untouchable.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIN DRAWER -->
+    <div class="login-overlay" id="loginBox">
+        <div class="drawer-inner">
+
+            <!-- PANEL 0: ROLE SELECTION -->
+            <div class="panel active" id="panelRole">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="fw-bold mb-0">Select Your Role</h3>
+                    <button class="btn btn-sm btn-outline-light rounded-circle" onclick="closeDrawer()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <p class="text-white-50 small mb-4">Choose your role to continue with secure login.</p>
+
+                <div class="role-grid">
+                    <div class="role-card" id="role-superadmin"
+                        style="--role-color:#f59e0b;--role-bg:rgba(245,158,11,0.1);--role-border:rgba(245,158,11,0.3);--role-glow:rgba(245,158,11,0.2);"
+                        onclick="selectRole('superadmin', 'Super Admin', '#f59e0b', 'bi-shield-fill-check')">
+                        <div class="role-check"><i class="bi bi-check"></i></div>
+                        <div class="role-icon-wrap" style="color:#f59e0b;"><i class="bi bi-shield-fill-check"></i></div>
+                        <div class="role-title">Super Admin</div>
+                        <div class="role-subtitle">Full Access</div>
+                    </div>
+
+                    <div class="role-card" id="role-pm"
+                        style="--role-color:#3b82f6;--role-bg:rgba(59,130,246,0.1);--role-border:rgba(59,130,246,0.3);--role-glow:rgba(59,130,246,0.2);"
+                        onclick="selectRole('pm', 'Project Manager', '#3b82f6', 'bi-briefcase-fill')">
+                        <div class="role-check"><i class="bi bi-check"></i></div>
+                        <div class="role-icon-wrap" style="color:#3b82f6;"><i class="bi bi-briefcase-fill"></i></div>
+                        <div class="role-title">Project Manager</div>
+                        <div class="role-subtitle">Team & Projects</div>
+                    </div>
+
+                    <div class="role-card" id="role-tl"
+                        style="--role-color:#22c55e;--role-bg:rgba(34,197,94,0.1);--role-border:rgba(34,197,94,0.3);--role-glow:rgba(34,197,94,0.2);"
+                        onclick="selectRole('tl', 'Team Leader', '#22c55e', 'bi-people-fill')">
+                        <div class="role-check"><i class="bi bi-check"></i></div>
+                        <div class="role-icon-wrap" style="color:#22c55e;"><i class="bi bi-people-fill"></i></div>
+                        <div class="role-title">Team Leader</div>
+                        <div class="role-subtitle">Lead & Report</div>
+                    </div>
+
+                    <div class="role-card" id="role-developer"
+                        style="--role-color:#a78bfa;--role-bg:rgba(167,139,250,0.1);--role-border:rgba(167,139,250,0.3);--role-glow:rgba(167,139,250,0.2);"
+                        onclick="selectRole('developer', 'Developer', '#a78bfa', 'bi-code-slash')">
+                        <div class="role-check"><i class="bi bi-check"></i></div>
+                        <div class="role-icon-wrap" style="color:#a78bfa;"><i class="bi bi-code-slash"></i></div>
+                        <div class="role-title">Developer</div>
+                        <div class="role-subtitle">Build & Deploy</div>
+                    </div>
+                </div>
+
+                <button class="btn-main" id="proceedLoginBtn" onclick="proceedToLogin()" disabled style="opacity:0.5;">
+                    CONTINUE TO LOGIN <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <div class="drawer-footer">© 2026 TMS Global Systems</div>
+            </div>
+
+            <!-- PANEL 1: LOGIN -->
+            <div class="panel" id="panelLogin">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-sm btn-outline-light rounded-circle" onclick="showPanel('panelRole')">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <h3 class="fw-bold mb-0">Secure Login</h3>
+                    </div>
+                    <button class="btn btn-sm btn-outline-light rounded-circle" onclick="closeDrawer()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="selected-role-badge show mb-3" id="loginRoleBadge">
+                    <div class="role-badge-dot" id="loginRoleDot"></div>
+                    <span id="loginRoleLabel">Role</span>
+                </div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <label class="form-label-custom">EMAIL ADDRESS</label>
+                    <div class="input-group-custom">
+                        <i class="bi bi-envelope input-icon"></i>
+                        <input type="email" class="form-control-custom" id="loginEmail" placeholder="admin@TMS.com" required>
+                    </div>
+
+                    <label class="form-label-custom">PASSWORD</label>
+                    <div class="input-group-custom">
+                        <i class="bi bi-lock input-icon"></i>
+                        <input type="password" class="form-control-custom" id="loginPassword" placeholder="••••••••" required>
+                        <button type="button" class="toggle-pw" onclick="togglePw('loginPassword', this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="text-end mb-4">
+                        <button type="button" class="link-btn" onclick="showPanel('panelForgot')">
+                            Forgot Password?
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn-main" id="loginBtn">
+                        INITIALIZE SESSION
+                    </button>
+                </form>
+
+                <div class="drawer-footer">© 2026 TMS Global Systems</div>
+            </div>
+
+            <!-- PANEL 2: FORGOT — CHOOSE METHOD -->
+            <div class="panel" id="panelForgot">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <button class="btn btn-sm btn-outline-light rounded-circle" onclick="showPanel('panelLogin')">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <h3 class="fw-bold mb-0">Reset Password</h3>
+                </div>
+
+                <p class="text-white-50 small mb-4">Choose how you'd like to receive your OTP verification code.</p>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">RESET METHOD</label>
+                    <div class="d-flex gap-3 mb-4">
+                        <button type="button" class="method-btn active" id="btnMethodEmail" onclick="selectMethod('email')">
+                            <i class="bi bi-envelope me-2"></i> Email
+                        </button>
+                        <button type="button" class="method-btn" id="btnMethodMobile" onclick="selectMethod('mobile')">
+                            <i class="bi bi-phone me-2"></i> Mobile
+                        </button>
+                    </div>
+                </div>
+
+                <div id="inputEmail" class="mb-3">
+                    <label class="form-label-custom">REGISTERED EMAIL</label>
+                    <div class="input-group-custom">
+                        <i class="bi bi-envelope input-icon"></i>
+                        <input type="email" class="form-control-custom" id="forgotEmail" placeholder="admin@TMS.com">
+                    </div>
+                </div>
+
+                <div id="inputMobile" class="mb-3" style="display:none;">
+                    <label class="form-label-custom">REGISTERED MOBILE</label>
+                    <div class="input-group-custom">
+                        <i class="bi bi-phone input-icon"></i>
+                        <input type="tel" class="form-control-custom" id="forgotMobile" placeholder="+91 98765 43210" maxlength="15">
+                    </div>
+                </div>
+
+                <button class="btn-main" id="sendOtpBtn" onclick="handleSendOtp()">SEND OTP</button>
+                <button class="btn-ghost" onclick="showPanel('panelLogin')">Back to Login</button>
+
+                <div class="drawer-footer">© 2026 TMS Global Systems</div>
+            </div>
+
+            <!-- PANEL 3: OTP VERIFY -->
+            <div class="panel" id="panelOtp">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <button class="btn btn-sm btn-outline-light rounded-circle" onclick="showPanel('panelForgot')">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <h3 class="fw-bold mb-0">Enter OTP</h3>
+                </div>
+
+                <p class="text-white-50 small mb-1" id="otpSentMsg">OTP sent to your registered contact.</p>
+                <p class="text-white-50 small mb-0">Please enter the 6-digit code below.</p>
+
+                <div class="otp-row" id="otpRow">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="timer-badge">
+                        <i class="bi bi-clock"></i>
+                        Expires in <span id="timerCount">02:00</span>
+                    </div>
+                    <button class="link-btn" id="resendBtn" onclick="resendOtp()" disabled>Resend OTP</button>
+                </div>
+
+                <button class="btn-main" id="verifyOtpBtn" onclick="handleVerifyOtp()">VERIFY OTP</button>
+
+                <div class="drawer-footer">© 2026 TMS Global Systems</div>
+            </div>
+
+            <!-- PANEL 4: NEW PASSWORD -->
+            <div class="panel" id="panelNewPw">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width:36px;height:36px;background:rgba(34,197,94,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-shield-check" style="color:#22c55e;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">New Password</h3>
+                </div>
+
+                <p class="text-white-50 small mb-4">Identity verified! Set your new secure password.</p>
+
+                <label class="form-label-custom">NEW PASSWORD</label>
+                <div class="input-group-custom">
+                    <i class="bi bi-lock input-icon"></i>
+                    <input type="password" class="form-control-custom" id="newPw" placeholder="Min. 8 characters" oninput="checkStrength()" required>
+                    <button type="button" class="toggle-pw" onclick="togglePw('newPw', this)"><i class="bi bi-eye"></i></button>
+                </div>
+                <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                <div class="strength-label" id="strengthLabel">Enter a password</div>
+
+                <br>
+
+                <label class="form-label-custom">CONFIRM PASSWORD</label>
+                <div class="input-group-custom">
+                    <i class="bi bi-lock-fill input-icon"></i>
+                    <input type="password" class="form-control-custom" id="confirmPw" placeholder="Re-enter password" required>
+                    <button type="button" class="toggle-pw" onclick="togglePw('confirmPw', this)"><i class="bi bi-eye"></i></button>
+                </div>
+
+                <button class="btn-main mt-2" onclick="handleResetPassword()">RESET PASSWORD</button>
+
+                <div class="drawer-footer">© 2026 TMS Global Systems</div>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+        .method-btn {
+            flex: 1;
+            padding: 12px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .method-btn.active {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,0.12);
+            color: #60a5fa;
+        }
+    </style>
+
+    <script>
+        /* ============================================================
+           CLOCK
+        ============================================================ */
+        function updateClock() {
+            document.getElementById('liveClock').innerText = new Date().toLocaleString('en-IN', {
+                weekday: 'short', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        /* ============================================================
+           ROLE SELECTION
+        ============================================================ */
+        let selectedRole = null, selectedRoleLabel = '', selectedRoleColor = '';
+
+        function selectRole(roleKey, label, color) {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('role-' + roleKey).classList.add('selected');
+            selectedRole = roleKey; selectedRoleLabel = label; selectedRoleColor = color;
+            const btn = document.getElementById('proceedLoginBtn');
+            btn.disabled = false; btn.style.opacity = '1';
+        }
+
+        function proceedToLogin() {
+            if (!selectedRole) return;
+            document.getElementById('loginRoleLabel').textContent = 'Logged in as: ' + selectedRoleLabel;
+            document.getElementById('loginRoleDot').style.background = selectedRoleColor;
+            document.getElementById('loginBtn').style.background =
+                `linear-gradient(135deg, ${selectedRoleColor}, #0f172a)`;
+            showPanel('panelLogin');
+        }
+
+        /* ============================================================
+           DRAWER
+        ============================================================ */
+        function openDrawer() {
+            document.getElementById('loginBox').classList.add('open');
+            document.getElementById('backdrop').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+            document.getElementById('loginBox').classList.remove('open');
+            document.getElementById('backdrop').classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => showPanel('panelRole'), 400);
+        }
+
+        function showPanel(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        /* ============================================================
+           PASSWORD TOGGLE
+        ============================================================ */
+        function togglePw(inputId, btn) {
+            const inp = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                inp.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        /* ============================================================
+           LOGIN
+        ============================================================ */
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Authenticating...';
+            btn.disabled = true;
+
+            const email    = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const role     = selectedRole;
+
+            const data = await Auth.login(email, password, role);
+
+            if (data.success) {
+                    const FLASK = window.location.origin;
+                    const redirectMap = {
+                        superadmin: FLASK + '/super_admin.html',
+                        pm:         FLASK + '/pm_dashboard.html',
+                        tl:         FLASK + '/tl-dashboard.html',
+                        developer:  FLASK + '/developer-dashboard.html',
+                    };
+                window.location.href = redirectMap[data.data.role] || FLASK + '/super_admin.html';
+            } else {
+                Swal.fire({ icon:'error', title:'Login Failed',
+                    text: data.error || 'Invalid credentials',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' });
+                btn.innerHTML = 'INITIALIZE SESSION';
+                btn.disabled  = false;
+            }
+        }
+
+        /* ============================================================
+           FORGOT PASSWORD — METHOD
+        ============================================================ */
+        let resetMethod = 'email';
+
+        function selectMethod(method) {
+            resetMethod = method;
+            document.getElementById('btnMethodEmail').classList.toggle('active', method === 'email');
+            document.getElementById('btnMethodMobile').classList.toggle('active', method === 'mobile');
+            document.getElementById('inputEmail').style.display  = method === 'email'  ? '' : 'none';
+            document.getElementById('inputMobile').style.display = method === 'mobile' ? '' : 'none';
+        }
+
+        /* ============================================================
+           SEND OTP
+        ============================================================ */
+        async function handleSendOtp() {
+            const btn   = document.getElementById('sendOtpBtn');
+            const value = resetMethod === 'email'
+                ? document.getElementById('forgotEmail').value.trim()
+                : document.getElementById('forgotMobile').value.trim();
+
+            if (!value) {
+                Swal.fire({ icon:'warning', title:'Missing Info',
+                    text: resetMethod === 'email' ? 'Please enter your registered email.' : 'Please enter your registered mobile.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' });
+                return;
+            }
+
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending...';
+            btn.disabled  = true;
+
+            const data = await Auth.sendOtp(resetMethod, value);
+
+            if (data.success) {
+                const maskedVal = resetMethod === 'email' ? maskEmail(value) : maskMobile(value);
+                document.getElementById('otpSentMsg').textContent = `OTP sent to ${maskedVal}`;
+                showPanel('panelOtp');
+                startTimer();
+                if (data.otp) {
+                    Swal.fire({ icon:'info', title:'OTP (Demo)',
+                        html: `<b style="color:#6366f1;font-size:22px;letter-spacing:6px;">${data.otp}</b><br><small class="text-muted">Remove in production</small>`,
+                        background:'#0f172a', color:'#fff', confirmButtonColor:'#0f172a' });
+                }
+            } else {
+                Swal.fire({ icon:'error', title:'Failed', text: data.error || 'Could not send OTP.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' });
+            }
+            btn.innerHTML = 'SEND OTP';
+            btn.disabled  = false;
+        }
+
+        /* ============================================================
+           OTP BOXES
+        ============================================================ */
+        document.querySelectorAll('.otp-box').forEach((box, i, boxes) => {
+            box.addEventListener('input', () => {
+                box.value = box.value.replace(/\D/g, '').slice(-1);
+                box.classList.toggle('filled', box.value !== '');
+                if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+            });
+            box.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+            });
+            box.addEventListener('paste', e => {
+                e.preventDefault();
+                const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                [...pasted].forEach((ch, j) => {
+                    if (boxes[j]) { boxes[j].value = ch; boxes[j].classList.add('filled'); }
+                });
+                if (boxes[pasted.length - 1]) boxes[pasted.length - 1].focus();
+            });
+        });
+
+        /* ============================================================
+           OTP TIMER
+        ============================================================ */
+        let timerInterval = null;
+
+        function startTimer(seconds = 120) {
+            clearInterval(timerInterval);
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true; resendBtn.style.opacity = '0.4';
+            let remaining = seconds;
+            updateTimerDisplay(remaining);
+            timerInterval = setInterval(() => {
+                remaining--;
+                updateTimerDisplay(remaining);
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    resendBtn.disabled = false; resendBtn.style.opacity = '1';
+                    document.getElementById('timerCount').textContent = 'Expired';
+                    document.getElementById('timerCount').style.color = '#ef4444';
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(s) {
+            const m   = String(Math.floor(s / 60)).padStart(2, '0');
+            const sec = String(s % 60).padStart(2, '0');
+            document.getElementById('timerCount').textContent = `${m}:${sec}`;
+            document.getElementById('timerCount').style.color = s <= 30 ? '#ef4444' : '#f59e0b';
+        }
+
+        async function resendOtp() {
+            document.querySelectorAll('.otp-box').forEach(b => { b.value=''; b.classList.remove('filled'); });
+            startTimer();
+            const value = resetMethod === 'email'
+                ? document.getElementById('forgotEmail').value.trim()
+                : document.getElementById('forgotMobile').value.trim();
+            const data = await Auth.sendOtp(resetMethod, value);
+            if (data.success) {
+                Swal.fire({ icon:'success', title:'OTP Resent',
+                    html: data.otp ? `<b style="color:#6366f1;font-size:22px;letter-spacing:6px;">${data.otp}</b>` : 'A new OTP has been sent.',
+                    background:'#0f172a', color:'#fff', timer:3000, showConfirmButton:false });
+            }
+        }
+
+        /* ============================================================
+           VERIFY OTP
+        ============================================================ */
+        async function handleVerifyOtp() {
+            const otp = [...document.querySelectorAll('.otp-box')].map(b => b.value).join('');
+            if (otp.length < 6) {
+                Swal.fire({ icon:'warning', title:'Incomplete OTP', text:'Please enter all 6 digits.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' });
+                return;
+            }
+            const btn = document.getElementById('verifyOtpBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying...';
+            btn.disabled  = true;
+
+            const data = await Auth.verifyOtp(otp);
+            if (data.success) {
+                clearInterval(timerInterval);
+                showPanel('panelNewPw');
+            } else {
+                Swal.fire({ icon:'error', title:'Invalid OTP', text: data.error || 'Please try again.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#ef4444' });
+            }
+            btn.innerHTML = 'VERIFY OTP';
+            btn.disabled  = false;
+        }
+
+        /* ============================================================
+           PASSWORD STRENGTH
+        ============================================================ */
+        function checkStrength() {
+            const pw    = document.getElementById('newPw').value;
+            const fill  = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            let score   = 0;
+            if (pw.length >= 8)          score++;
+            if (/[A-Z]/.test(pw))        score++;
+            if (/[0-9]/.test(pw))        score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            const levels = [
+                { w:'0%',   c:'transparent', t:'Enter a password' },
+                { w:'25%',  c:'#ef4444',     t:'Weak' },
+                { w:'50%',  c:'#f59e0b',     t:'Fair' },
+                { w:'75%',  c:'#3b82f6',     t:'Good' },
+                { w:'100%', c:'#22c55e',     t:'Strong' },
+            ];
+            const lvl = levels[score];
+            fill.style.width      = lvl.w;
+            fill.style.background = lvl.c;
+            label.textContent     = lvl.t;
+            label.style.color     = lvl.c;
+        }
+
+        /* ============================================================
+           RESET PASSWORD
+        ============================================================ */
+        async function handleResetPassword() {
+            const newPw     = document.getElementById('newPw').value;
+            const confirmPw = document.getElementById('confirmPw').value;
+            if (newPw.length < 8) {
+                Swal.fire({ icon:'warning', title:'Too Short', text:'Password must be at least 8 characters.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' }); return;
+            }
+            if (newPw !== confirmPw) {
+                Swal.fire({ icon:'error', title:'Mismatch', text:'Passwords do not match.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' }); return;
+            }
+            const data = await Auth.resetPassword(newPw);
+            if (data.success) {
+                Swal.fire({ icon:'success', title:'Password Reset!',
+                    text:'Your password has been updated. Please log in.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6'
+                }).then(() => {
+                    document.getElementById('newPw').value     = '';
+                    document.getElementById('confirmPw').value = '';
+                    document.getElementById('strengthFill').style.width = '0%';
+                    document.getElementById('strengthLabel').textContent = 'Enter a password';
+                    document.querySelectorAll('.otp-box').forEach(b => { b.value=''; b.classList.remove('filled'); });
+                    showPanel('panelLogin');
+                });
+            } else {
+                Swal.fire({ icon:'error', title:'Failed', text: data.error || 'Could not reset password.',
+                    background:'#0f172a', color:'#fff', confirmButtonColor:'#3b82f6' });
+            }
+        }
+
+        /* ============================================================
+           HELPERS
+        ============================================================ */
+        function maskEmail(email) {
+            const [user, domain] = email.split('@');
+            return user.slice(0, 2) + '****@' + domain;
+        }
+        function maskMobile(mobile) {
+            const digits = mobile.replace(/\D/g, '');
+            return digits.slice(0, 2) + '****' + digits.slice(-2);
+        }
+    </script>
+    <script src="api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

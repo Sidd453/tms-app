@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Developer – Work Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+         :root {
+            --sidebar-w: 220px;
+            --indigo: #6366f1;
+            --green: #22c55e;
+            --dark: #0f172a;
+            --muted: #64748b;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        /* ─── SIDEBAR ─── */
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 14px;
+            z-index: 1100;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--indigo), var(--green));
+            border-radius: 14px;
+            padding: 13px 16px;
+            font-weight: 800;
+            font-size: 15px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 28px;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .nav-link-item:hover {
+            background: rgba(99, 102, 241, 0.12);
+            color: #e2e8f0;
+        }
+        
+        .nav-link-item.active {
+            background: rgba(99, 102, 241, 0.18);
+            color: #fff;
+        }
+        
+        .nav-link-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            background: var(--green);
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .nav-link-item i {
+            font-size: 16px;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+        }
+        /* ─── MOBILE NAV OVERLAY ─── */
+        
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1099;
+        }
+        /* ─── TOPBAR ─── */
+        
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 13px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 900;
+        }
+        
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--dark);
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .topbar-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+        
+        .topbar-sub {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        
+        .topbar-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .topbar-profile img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid var(--indigo);
+        }
+        
+        .profile-name {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .profile-role {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        /* ─── MAIN ─── */
+        
+        .main-content {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-body {
+            padding: 24px 22px;
+            flex: 1;
+        }
+        /* ─── STAT CARDS ─── */
+        
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            border-color: var(--indigo);
+        }
+        
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+        
+        .stat-icon.blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .stat-icon.orange {
+            background: #ffedd5;
+            color: #ea580c;
+        }
+        
+        .stat-icon.yellow {
+            background: #fef9c3;
+            color: #ca8a04;
+        }
+        
+        .stat-icon.green {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .stat-number {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+        /* ─── TASK SECTION ─── */
+        
+        .section-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        /* Filter pills */
+        
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pill:hover,
+        .pill.active {
+            background: var(--dark);
+            color: #fff;
+            border-color: var(--dark);
+        }
+        /* Task cards (mobile-first) */
+        
+        .task-item {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        
+        .task-item:hover {
+            border-color: var(--indigo);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
+        }
+        
+        .task-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .task-skills {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+        
+        .task-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .badge-priority {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        
+        .badge-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .badge-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .badge-low {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .task-deadline {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .task-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .progress-bar-custom {
+            width: 60px;
+            height: 5px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--indigo), var(--green));
+            border-radius: 999px;
+        }
+        
+        .status-text-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        
+        .btn-update {
+            background: var(--dark);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .btn-update:hover {
+            background: var(--indigo);
+        }
+        /* ─── PROFILE ─── */
+        
+        .profile-header {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+        
+        .profile-avatar-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+        
+        .profile-avatar-wrap img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid var(--indigo);
+            object-fit: cover;
+        }
+        
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--dark);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        
+        .profile-name-big {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        
+        .profile-dept {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .info-block {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        
+        .info-block.full {
+            grid-column: 1 / -1;
+        }
+        
+        .info-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 3px;
+        }
+        
+        .security-btn {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .security-btn:hover {
+            border-color: var(--indigo);
+            background: #fff;
+        }
+        
+        .btn-edit-profile {
+            width: 100%;
+            padding: 12px;
+            background: var(--dark);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+        
+        .btn-edit-profile:hover {
+            background: var(--indigo);
+        }
+        /* ─── MODALS ─── */
+        
+        .modal-content {
+            border-radius: 22px !important;
+            border: none !important;
+        }
+        
+        .modal-header {
+            border-bottom: none !important;
+            padding: 20px 22px 8px !important;
+        }
+        
+        .modal-body {
+            padding: 16px 22px 24px !important;
+        }
+        
+        .form-control,
+        .form-select {
+            border-radius: 10px !important;
+            border: 1px solid var(--border) !important;
+            background: var(--bg) !important;
+            font-size: 14px !important;
+            padding: 10px 14px !important;
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--indigo) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+            background: #fff !important;
+        }
+        
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .btn-modal-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--dark);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: background 0.2s;
+        }
+        
+        .btn-modal-submit:hover {
+            background: var(--indigo);
+        }
+        
+        .status-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        
+        .status-opt input {
+            display: none;
+        }
+        
+        .status-opt label {
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .status-opt input:checked+label {
+            background: var(--dark);
+            color: #fff;
+            border-color: var(--dark);
+        }
+        /* SweetAlert theme */
+        
+        .swal2-popup {
+            border-radius: 18px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        
+        .swal2-confirm {
+            border-radius: 10px !important;
+            padding: 10px 24px !important;
+            background: var(--dark) !important;
+            border: none !important;
+        }
+        
+        .notif-badge {
+            margin-left: auto;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            min-width: 20px;
+            text-align: center;
+        }
+        /* ─── PROJECTS ─── */
+        
+        .project-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            transition: all 0.2s;
+            height: 100%;
+        }
+        
+        .project-card:hover {
+            border-color: var(--indigo);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .project-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .project-desc {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        
+        .project-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .project-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        
+        .project-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--indigo), var(--green));
+            border-radius: 999px;
+        }
+        
+        .project-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .project-stack {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .project-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        
+        .project-status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+        
+        .psb-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .psb-hold {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        
+        .psb-done {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        /* ─── BUG TRACKER ─── */
+        
+        .bug-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        
+        .bug-item:hover {
+            border-color: #f87171;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
+        }
+        
+        .bug-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .bug-module {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+        
+        .bug-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .bug-severity {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        
+        .sev-critical {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .sev-high {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+        
+        .sev-medium {
+            background: #fef9c3;
+            color: #a16207;
+        }
+        
+        .sev-low {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .bug-status {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        
+        .bst-open {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .bst-progress {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .bst-resolved {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .bug-date {
+            font-size: 11px;
+            color: var(--muted);
+            margin-left: auto;
+        }
+        
+        .btn-fix {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .btn-fix:hover {
+            background: #b91c1c;
+        }
+        
+        .bug-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media(max-width:600px) {
+            .bug-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        /* ─── NOTIFICATIONS ─── */
+        
+        .notif-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .notif-item:hover {
+            border-color: var(--indigo);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
+        }
+        
+        .notif-item.unread {
+            background: #f8f7ff;
+            border-color: #c7d2fe;
+        }
+        
+        .notif-item.unread::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--indigo);
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .ni-task {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .ni-bug {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .ni-project {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .ni-system {
+            background: #fef9c3;
+            color: #ca8a04;
+        }
+        
+        .notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notif-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        
+        .notif-text {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+        
+        .notif-time {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        
+        .notif-unread-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--indigo);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+        
+        .notif-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .btn-mark-all {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--indigo);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .btn-mark-all:hover {
+            text-decoration: underline;
+        }
+        
+        .notif-filter {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .anim {
+            animation: fadeUp 0.5s ease both;
+        }
+        
+        .d1 {
+            animation-delay: 0.05s;
+        }
+        
+        .d2 {
+            animation-delay: 0.12s;
+        }
+        
+        .d3 {
+            animation-delay: 0.19s;
+        }
+        
+        .d4 {
+            animation-delay: 0.26s;
+        }
+        /* ─── SECTION VISIBILITY ─── */
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        /* ─── RESPONSIVE ─── */
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 230px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .nav-overlay.open {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .hamburger {
+                display: block;
+            }
+            .topbar-profile .profile-name,
+            .topbar-profile .profile-role {
+                display: none;
+            }
+            .page-body {
+                padding: 16px 14px;
+            }
+            .stat-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .task-meta {
+                flex-wrap: wrap;
+            }
+            .task-status {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 420px) {
+            .stat-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-number {
+                font-size: 24px;
+            }
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 992px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- OVERLAY -->
+    <div class="nav-overlay" id="navOverlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">⚡ DEV PANEL</div>
+
+        <a href="#" class="nav-link-item active" onclick="showSection('overview', event)">
+            <i class="bi bi-grid-1x2-fill"></i> Work Desk
+        </a>
+        <a href="#" class="nav-link-item" onclick="showSection('projects', event)">
+            <i class="bi bi-folder2-open"></i> My Tasks
+        </a>
+        <a href="#" class="nav-link-item" onclick="showSection('bugs', event)">
+            <i class="bi bi-bug-fill"></i> Bug Tracker
+        </a>
+        <a href="#" class="nav-link-item" onclick="showSection('profile', event)">
+            <i class="bi bi-person-fill"></i> My Profile
+        </a>
+
+        <div class="sidebar-footer">
+            <a href="login page.html" class="nav-link-item" style="color:#f87171;">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+                <div>
+                    <div class="topbar-title">Developer Dashboard</div>
+                    <div class="topbar-sub">Track tasks & project milestones</div>
+                </div>
+            </div>
+            <div class="topbar-profile" onclick="showSection('profile', null)">
+                <div class="text-end">
+                    <div class="profile-name">Developer</div>
+                    <div class="profile-role">Full Stack Web Developer</div>
+                </div>
+                <img id="devProfileHeader" src="https://ui-avatars.com/api/?name=Developer&background=6366f1&color=fff&bold=true" alt="Profile">
+            </div>
+        </div>
+
+        <!-- PAGE BODY -->
+        <div class="page-body">
+
+            <!-- ── OVERVIEW SECTION ── -->
+            <div id="section-overview" class="section active">
+
+                <!-- Stat Cards -->
+                <div class="stat-grid">
+                    <div class="stat-card anim d1" onclick="filterTasks('all')">
+                        <div class="stat-icon blue"><i class="bi bi-list-task"></i></div>
+                        <div class="stat-number" data-count="6">06</div>
+                        <div class="stat-label">Assigned Tasks</div>
+                    </div>
+                    <div class="stat-card anim d2" onclick="filterTasks('Not Started')">
+                        <div class="stat-icon orange"><i class="bi bi-clock-history"></i></div>
+                        <div class="stat-number" data-count="2">02</div>
+                        <div class="stat-label">Not Started</div>
+                    </div>
+                    <div class="stat-card anim d3" onclick="filterTasks('In Progress')">
+                        <div class="stat-icon yellow"><i class="bi bi-play-circle-fill"></i></div>
+                        <div class="stat-number" data-count="3">03</div>
+                        <div class="stat-label">In Progress</div>
+                    </div>
+                    <div class="stat-card anim d4" onclick="filterTasks('Completed')">
+                        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+                        <div class="stat-number" data-count="1">01</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+
+                <!-- Task Board -->
+                <div class="section-card anim d2">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <div class="section-title mb-0">My Task Board</div>
+                        <div class="position-relative" style="min-width:200px;">
+                            <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                            <input type="text" id="taskSearchInput" class="form-control form-control-sm bg-light border-0 ps-4" placeholder="Search tasks..." oninput="searchTasks(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Filter Pills -->
+                    <div class="filter-pills">
+                        <button class="pill active" onclick="filterTasks('all', this)">All Tasks</button>
+                        <button class="pill" onclick="filterTasks('Not Started', this)">Not Started</button>
+                        <button class="pill" onclick="filterTasks('In Progress', this)">In Progress</button>
+                        <button class="pill" onclick="filterTasks('Completed', this)">Completed</button>
+                        <button class="pill" onclick="filterTasks('Paused', this)">Paused</button>
+                    </div>
+
+                    <!-- Task List -->
+                    <div id="task-list">
+                        <div class="text-center text-muted py-5"><i class="bi bi-clipboard-check" style="font-size:2rem;"></i><p class="mt-2">Loading tasks...</p></div>
+                    </div>
+                </div>
+            </div>
+            <!-- PROFILE SECTION ── -->
+            <div id="section-profile" class="section">
+                <div class="section-card anim d1" style="max-width: 560px; margin: 0 auto;">
+
+                    <!-- Avatar -->
+                    <div class="profile-header">
+                        <div class="profile-avatar-wrap">
+                            <img id="devProfilePhoto" src="https://ui-avatars.com/api/?name=Developer&background=6366f1&color=fff&bold=true" alt="Profile">
+                            <label for="dev-upload-photo" class="avatar-edit-btn">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" id="dev-upload-photo" hidden accept="image/*" onchange="devPreviewImage(event)">
+                        </div>
+                        <div class="profile-name-big" id="devDisplayName">Developer</div>
+                        <div class="profile-dept">Full Stack Web Developer · IT Department</div>
+                    </div>
+
+                    <!-- Info -->
+                    <div style="padding: 0 4px;">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-label">Employee ID</div>
+                                <div class="info-value">#DEV-4022</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Mobile Number</div>
+                                <div class="info-value" id="devViewMobile">8421892010</div>
+                            </div>
+                            <div class="info-block full">
+                                <div class="info-label">Full Name</div>
+                                <div class="info-value" id="devViewName">Developer</div>
+                            </div>
+                            <div class="info-block full">
+                                <div class="info-label">Official Email</div>
+                                <div class="info-value" style="font-size:13px;" id="devViewEmail">rahul.dev@srujaninfotech.com</div>
+                            </div>
+                        </div>
+
+                        <!-- Tech Stack -->
+                        <div class="info-label mb-2">Tech Stack</div>
+                        <div id="tech-badges" class="mb-4">
+                            <span class="tech-badge">Python</span>
+                            <span class="tech-badge">MySQL</span>
+                            <span class="tech-badge">Flutter</span>
+                        </div>
+
+                        <!-- Security -->
+                        <div class="info-label mb-2">Security</div>
+                        <button class="security-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-shield-lock-fill text-primary"></i>
+                            Change Password / Forgot Password
+                            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                        </button>
+
+                        <button class="btn-edit-profile" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="bi bi-pencil-square me-2"></i> Edit Profile
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- ── MY TASKS (renamed from My Projects) SECTION ── -->
+            <div id="section-projects" class="section">
+                <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-0">My Tasks</h5>
+                        <p class="text-muted small mb-0">All assigned project tasks & their progress</p>
+                    </div>
+                    <div class="position-relative" style="min-width:200px;">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="projSearchInput" class="form-control form-control-sm bg-white border ps-4" placeholder="Search tasks..." oninput="searchProjects(this.value)">
+                    </div>
+                </div>
+                <div class="row g-3" id="proj-grid">
+
+
+
+
+
+
+                </div>
+            </div>
+
+            <!-- ── BUG TRACKER SECTION ── -->
+            <div id="section-bugs" class="section">
+                <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-0">Bug Tracker</h5>
+                        <p class="text-muted small mb-0">Assigned bugs & issues to resolve</p>
+                    </div>
+                    <div class="position-relative" style="min-width:200px;">
+                        <i class="bi bi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                        <input type="text" id="bugSearchInput" class="form-control form-control-sm bg-white border ps-4" placeholder="Search bugs..." oninput="searchBugs(this.value)">
+                    </div>
+                </div>
+
+                <!-- Bug Stats -->
+                <div class="bug-stats-grid">
+                    <div class="stat-card anim d1" style="padding:16px;">
+                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;width:36px;height:36px;font-size:15px;border-radius:10px;margin-bottom:10px;"><i class="bi bi-bug-fill"></i></div>
+                        <div class="stat-number" style="font-size:24px;">08</div>
+                        <div class="stat-label">Total Bugs</div>
+                    </div>
+                    <div class="stat-card anim d2" style="padding:16px;">
+                        <div class="stat-icon" style="background:#ffedd5;color:#ea580c;width:36px;height:36px;font-size:15px;border-radius:10px;margin-bottom:10px;"><i class="bi bi-exclamation-circle-fill"></i></div>
+                        <div class="stat-number" style="font-size:24px;">03</div>
+                        <div class="stat-label">Open</div>
+                    </div>
+                    <div class="stat-card anim d3" style="padding:16px;">
+                        <div class="stat-icon" style="background:#dbeafe;color:#2563eb;width:36px;height:36px;font-size:15px;border-radius:10px;margin-bottom:10px;"><i class="bi bi-arrow-repeat"></i></div>
+                        <div class="stat-number" style="font-size:24px;">03</div>
+                        <div class="stat-label">In Progress</div>
+                    </div>
+                    <div class="stat-card anim d4" style="padding:16px;">
+                        <div class="stat-icon" style="background:#dcfce7;color:#16a34a;width:36px;height:36px;font-size:15px;border-radius:10px;margin-bottom:10px;"><i class="bi bi-check-circle-fill"></i></div>
+                        <div class="stat-number" style="font-size:24px;">02</div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                </div>
+
+                <!-- Bug Filter -->
+                <div class="section-card anim d2">
+                    <div class="filter-pills">
+                        <button class="pill active" onclick="filterBugs('all', this)">All</button>
+                        <button class="pill" onclick="filterBugs('Open', this)">Open</button>
+                        <button class="pill" onclick="filterBugs('In Progress', this)">In Progress</button>
+                        <button class="pill" onclick="filterBugs('Resolved', this)">Resolved</button>
+                    </div>
+
+                    <div id="bug-list">
+                        <div class="text-center text-muted py-5"><i class="bi bi-bug" style="font-size:2rem;"></i><p class="mt-2">No bugs reported yet.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ── CHANGE PASSWORD MODAL ── -->
+            <div class="modal fade" id="changePasswordModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="fw-bold">Security Center</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="changePassForm">
+                                <label class="form-label">Current Password</label>
+                                <input type="password" class="form-control mb-3" id="cp-current" placeholder="Enter current password">
+
+                                <label class="form-label">New Password</label>
+                                <input type="password" class="form-control mb-3" id="cp-new" placeholder="Enter new password">
+
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control mb-3" id="cp-confirm" placeholder="Re-enter new password">
+
+                                <button type="submit" class="btn-modal-submit">Update Password</button>
+                                <button type="button" class="btn btn-link w-100 text-center text-decoration-none small mt-2" id="btn-forgot-pass">
+                        Forgot password?
+                    </button>
+                            </form>
+
+                            <form id="forgotPassForm" style="display:none;">
+                                <label class="form-label">Registered Email</label>
+                                <input type="email" class="form-control mb-3" id="fp-email" value="rahul.dev@srujaninfotech.com">
+                                <button type="button" class="btn-modal-submit mb-3" id="btn-send-otp">Send OTP to Email</button>
+
+                                <div id="otp-section" style="display:none;">
+                                    <label class="form-label">Enter OTP</label>
+                                    <input type="text" class="form-control mb-3" id="fp-otp" placeholder="6-digit code">
+                                    <button type="submit" class="btn-modal-submit" style="background:#16a34a;">Verify OTP</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── EDIT PROFILE MODAL ── -->
+            <div class="modal fade" id="editProfileModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="fw-bold">Edit Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="profileUpdateForm">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="edit-full-name" class="form-control mb-3" value="Developer" placeholder="Enter full name">
+
+                                <label class="form-label">Official Email</label>
+                                <input type="email" id="edit-official-email" class="form-control mb-3" value="rahul.dev@srujaninfotech.com" placeholder="Official email">
+
+                                <label class="form-label">Mobile Number</label>
+                                <input type="tel" id="edit-mobile" class="form-control mb-3" value="8421892010" placeholder="Mobile number">
+
+                                <label class="form-label">Tech Stack</label>
+                                <input type="text" id="edit-tech-stack" class="form-control mb-3" value="Python, MySQL, Flutter" placeholder="Comma separated skills">
+
+                                <label class="form-label">New Password <span class="text-muted fw-normal">(optional)</span></label>
+                                <input type="password" id="edit-new-pass" class="form-control mb-3" placeholder="Leave blank to keep same">
+
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" id="edit-confirm-pass" class="form-control mb-3" placeholder="Re-enter new password">
+
+                                <button type="submit" class="btn-modal-submit">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/api.js"></script>
+            <script>
+                // ─── SIDEBAR TOGGLE (mobile) ───
+                function toggleSidebar() {
+                    document.getElementById('sidebar').classList.toggle('open');
+                    document.getElementById('navOverlay').classList.toggle('open');
+                }
+
+                function closeSidebar() {
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('navOverlay').classList.remove('open');
+                }
+
+                // ─── SECTION NAVIGATION ───
+                function showSection(name, event) {
+                    if (event) event.preventDefault();
+
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById('section-' + name).classList.add('active');
+
+                    document.querySelectorAll('.nav-link-item').forEach(l => l.classList.remove('active'));
+                    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+                    closeSidebar();
+
+                    // Scroll to top on mobile
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+
+                // ─── PROFILE PHOTO PREVIEW ───
+                function devPreviewImage(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        document.getElementById('devProfilePhoto').src = e.target.result;
+                        document.getElementById('devProfileHeader').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                // ─── COUNTER ANIMATION ───
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('.stat-number').forEach(el => {
+                        const target = +el.getAttribute('data-count');
+                        let count = 0;
+                        const step = target / 40;
+                        const interval = setInterval(() => {
+                            count += step;
+                            if (count >= target) {
+                                el.textContent = String(target).padStart(2, '0');
+                                clearInterval(interval);
+                            } else el.textContent = String(Math.ceil(count)).padStart(2, '0');
+                        }, 20);
+                    });
+                });
+
+
+                // ─── BUG FILTER ───
+                function filterBugs(status, btn) {
+                    document.querySelectorAll('#bug-list .bug-item').forEach(item => {
+                        item.style.display = (status === 'all' || item.dataset.bstatus === status) ? '' : 'none';
+                    });
+                    if (btn) {
+                        document.querySelectorAll('#section-bugs .pill').forEach(p => p.classList.remove('active'));
+                        btn.classList.add('active');
+                    }
+                }
+
+                function markBugFixed(btn) {
+                    const item = btn.closest('.bug-item');
+                    const statusEl = item.querySelector('.bug-status');
+                    statusEl.textContent = 'Resolved';
+                    statusEl.className = 'bug-status bst-resolved';
+                    item.dataset.bstatus = 'Resolved';
+                    btn.remove();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Bug Marked Fixed!',
+                        text: 'Status updated to Resolved.',
+                        confirmButtonColor: '#0f172a',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+
+                // ─── NOTIFICATIONS ───
+                function filterNotifs(type, btn) {
+                    document.querySelectorAll('#notif-list .notif-item').forEach(item => {
+                        item.style.display = (type === 'all' || item.dataset.ntype === type) ? '' : 'none';
+                    });
+                    if (btn) {
+                        
+                        btn.classList.add('active');
+                    }
+                }
+
+                function readNotif(el) {
+                    el.classList.remove('unread');
+                    const dot = el.querySelector('.notif-unread-dot');
+                    if (dot) dot.remove();
+                    updateNotifCount();
+                }
+
+                function markAllRead() {
+                    document.querySelectorAll('#notif-list .notif-item.unread').forEach(el => readNotif(el));
+                }
+
+                function updateNotifCount() {
+                    const count = document.querySelectorAll('#notif-list .notif-item.unread').length;
+                    const badge = document.getElementById('sidebar-notif-count');
+                    if (badge) {
+                        badge.textContent = count;
+                        badge.style.display = count > 0 ? '' : 'none';
+                    }
+                }
+
+
+                function filterTasks(status, btn) {
+                    document.querySelectorAll('#task-list .task-item').forEach(item => {
+                        item.style.display = (status === 'all' || item.dataset.status === status) ? '' : 'none';
+                    });
+                    if (btn) {
+                        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                        btn.classList.add('active');
+                    }
+                }
+
+                // ─── STATUS UPDATE FORM — FIXED: saves to backend ───
+                document.getElementById('statusUpdateForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const selected = document.querySelector('input[name="taskStatus"]:checked');
+                    const newStatus = selected ? selected.value : null;
+                    if (newStatus && window._activeUpdateItem) {
+                        await setTaskAction(window._activeUpdateItem.querySelector('button'), newStatus);
+                        // Also save progress to backend if task ID available
+                        const taskId = window._activeTaskId || window._activeUpdateItem.dataset?.taskId;
+                        if (taskId) {
+                            const prog = newStatus === 'Completed' ? 100 : newStatus === 'Not Started' ? 0 : undefined;
+                            const payload = { status: newStatus };
+                            if (prog !== undefined) payload.progress = prog;
+                            try { await Tasks.update(parseInt(taskId), payload); } catch(e2) {}
+                        }
+                    }
+                    Swal.fire({ icon:'success', title:'Task Updated!', text:'Task progress updated successfully.', confirmButtonColor:'#0f172a' })
+                        .then(() => bootstrap.Modal.getInstance(document.getElementById('updateStatusModal')).hide());
+                });
+
+                // ─── CHANGE PASSWORD ───
+                document.getElementById('changePassForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const c = document.getElementById('cp-current').value.trim();
+                    const n = document.getElementById('cp-new').value.trim();
+                    const cf = document.getElementById('cp-confirm').value.trim();
+                    if (!c || !n || !cf) return Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Fields',
+                        text: 'Please fill all fields.',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    if (n !== cf) return Swal.fire({
+                        icon: 'warning',
+                        title: 'Mismatch!',
+                        text: 'New passwords do not match.',
+                        confirmButtonColor: '#f59e0b'
+                    });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Password Updated!',
+                        confirmButtonColor: '#0f172a'
+                    });
+                });
+
+                // ─── FORGOT PASSWORD ───
+                document.getElementById('btn-forgot-pass').addEventListener('click', () => {
+                    document.getElementById('changePassForm').style.display = 'none';
+                    document.getElementById('forgotPassForm').style.display = 'block';
+                });
+
+                document.getElementById('btn-send-otp').addEventListener('click', () => {
+                    const email = document.getElementById('fp-email').value.trim();
+                    if (!email) return Swal.fire({
+                        icon: 'error',
+                        title: 'Email Required',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    Swal.fire({
+                            icon: 'info',
+                            title: 'OTP Sent!',
+                            text: `OTP sent to ${email}`,
+                            confirmButtonColor: '#0f172a'
+                        })
+                        .then(() => document.getElementById('otp-section').style.display = 'block');
+                });
+
+                document.getElementById('forgotPassForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!document.getElementById('fp-otp').value.trim()) return Swal.fire({
+                        icon: 'error',
+                        title: 'OTP Required',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'OTP Verified!',
+                        confirmButtonColor: '#0f172a'
+                    });
+                });
+
+                // ─── EDIT PROFILE — saves Name, Email, Mobile, Skills ───
+                document.getElementById('profileUpdateForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const np   = document.getElementById('edit-new-pass').value;
+                    const cp   = document.getElementById('edit-confirm-pass').value;
+                    if (np && np !== cp) return Swal.fire({ icon:'error', title:'Password Mismatch!', confirmButtonColor:'#dc2626' });
+
+                    const name   = document.getElementById('edit-full-name').value.trim();
+                    const email  = document.getElementById('edit-official-email').value.trim();
+                    const mobile = document.getElementById('edit-mobile').value.trim();
+
+                    if (!name || !email || !mobile) return Swal.fire({ icon:'error', title:'Missing Fields', text:'Name, email & mobile are required.', confirmButtonColor:'#dc2626' });
+
+                    // Update profile view
+                    document.getElementById('devViewName').textContent   = name;
+                    document.getElementById('devViewEmail').textContent  = email;
+                    document.getElementById('devViewMobile').textContent = mobile;
+                    document.getElementById('devDisplayName').textContent = name;
+                    // Update topbar
+                    const tn = document.querySelector('.profile-name');
+                    if (tn) tn.textContent = name;
+
+                    // Update tech badges
+                    const skills = document.getElementById('edit-tech-stack').value.split(',').map(s => s.trim()).filter(Boolean);
+                    document.getElementById('tech-badges').innerHTML = skills.map(s => `<span class="tech-badge">${s}</span>`).join('');
+
+                    Swal.fire({ icon:'success', title:'Profile Updated!', timer:1500, showConfirmButton:false })
+                        .then(() => bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide());
+                });
+
+                // ─── NEW: SEARCH TASKS ───
+                function searchTasks(q) {
+                    q = q.toLowerCase();
+                    document.querySelectorAll('#task-list .task-item').forEach(item => {
+                        item.style.display = item.innerText.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                }
+
+                // ─── NEW: TASK ACTION (Start/Pause/Complete) ───
+                async function setTaskAction(btn, newStatus) {
+                    const item = btn.closest('.task-item');
+                    const taskId = item.dataset.taskId;
+                    item.dataset.status = newStatus;
+                    const lbl = item.querySelector('.task-status-lbl');
+                    if (lbl) {
+                        lbl.textContent = newStatus;
+                        lbl.style.color = newStatus === 'Completed' ? '#16a34a' : newStatus === 'Paused' ? '#d97706' : '';
+                    }
+                    const fill = item.querySelector('.progress-fill');
+                    if (fill) {
+                        if (newStatus === 'Completed') fill.style.width = '100%';
+                        else if (newStatus === 'Not Started') fill.style.width = '0%';
+                        else if (newStatus === 'Paused' && fill.style.width === '0%') fill.style.width = '10%';
+                    }
+                    // Save to backend
+                    if (taskId) {
+                        try {
+                            const prog = newStatus === 'Completed' ? 100 : newStatus === 'Not Started' ? 0 : undefined;
+                            const payload = { status: newStatus };
+                            if (prog !== undefined) payload.progress = prog;
+                            await Tasks.update(parseInt(taskId), payload);
+                        } catch(e) { console.log('Task update error:', e); }
+                    }
+                    Swal.fire({ icon: 'success', title: `Task ${newStatus}!`, timer: 1200, showConfirmButton: false });
+                }
+
+                // ─── FIXED: OPEN UPDATE MODAL with task ID ───
+                function openUpdateModal(btn, taskName, currentStatus, taskId) {
+                    document.getElementById('updateModalTaskName').textContent = taskName;
+                    window._activeUpdateItem = btn.closest('.task-item');
+                    window._activeTaskId = taskId || btn.closest('.task-item')?.dataset?.taskId;
+                    const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+                    modal.show();
+                }
+
+                // ─── NEW: SEARCH PROJECTS ───
+                function searchProjects(q) {
+                    q = q.toLowerCase();
+                    document.querySelectorAll('.proj-col').forEach(col => {
+                        col.style.display = col.dataset.title.includes(q) || col.innerText.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                }
+
+                // ─── NEW: OPEN PROJECT DETAIL MODAL ───
+                function openProjectDetail(p) {
+                    document.getElementById('pd-title').textContent      = p.title;
+                    document.getElementById('pd-desc').textContent       = p.desc;
+                    document.getElementById('pd-pm').textContent         = p.pm;
+                    document.getElementById('pd-deadline').textContent   = p.deadline;
+                    document.getElementById('pd-progress-bar').style.width = p.progress + '%';
+                    document.getElementById('pd-progress-pct').textContent = p.progress + '%';
+
+                    const statusEl = document.getElementById('pd-status');
+                    statusEl.textContent  = p.status;
+                    statusEl.className    = 'project-status-badge ' + p.statusClass;
+
+                    const stackEl = document.getElementById('pd-stack');
+                    stackEl.innerHTML = p.stack.map(s => `<span class="project-tag">${s}</span>`).join('');
+
+                    const docsEl = document.getElementById('pd-docs');
+                    docsEl.innerHTML = p.docs.map(d => `
+                        <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-text text-primary"></i>
+                                <div>
+                                    <div style="font-size:13px;font-weight:600;">${d.name}</div>
+                                    <div style="font-size:11px;color:#94a3b8;">${d.size}</div>
+                                </div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size:11px;"
+                                onclick="downloadDoc('${d.name}'); return false;">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                        </div>`).join('');
+
+                    new bootstrap.Modal(document.getElementById('projectDetailModal')).show();
+                }
+
+                function downloadDoc(name) {
+                    Swal.fire({ icon: 'success', title: 'Download Started', text: name + ' download will begin shortly.', timer: 1800, showConfirmButton: false });
+                }
+
+                // ─── NEW: SEARCH BUGS ───
+                function searchBugs(q) {
+                    q = q.toLowerCase();
+                    document.querySelectorAll('#bug-list .bug-item').forEach(item => {
+                        item.style.display = item.innerText.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                }
+
+                // ─── UPDATED: EDIT PROFILE — saves Name, Email, Mobile ───
+                // (override the earlier partial handler)
+            </script>
+
+            <script>
+    async function loadDevData() {
+        try {
+            const me = await Auth.me();
+            if (!me.success) { window.location.href = '/'; return; }
+            const u = me.data;
+            const name = u.full_name || u.name || 'Developer';
+            const email = u.official_email || '';
+            const mobile = u.mobile || '';
+
+            const topbarName = document.querySelector('.topbar-profile .profile-name');
+            if (topbarName) topbarName.textContent = name;
+            const headerImg = document.getElementById('devProfileHeader');
+            if (headerImg) headerImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=6366f1&color=fff&bold=true';
+            const profilePhoto = document.getElementById('devProfilePhoto');
+            if (profilePhoto) profilePhoto.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=6366f1&color=fff&bold=true';
+            const dispName = document.getElementById('devDisplayName');
+            if (dispName) dispName.textContent = name;
+            const viewName = document.getElementById('devViewName');
+            if (viewName) viewName.textContent = name;
+            const viewEmail = document.getElementById('devViewEmail');
+            if (viewEmail) viewEmail.textContent = email;
+            const editName = document.getElementById('edit-full-name');
+            if (editName) editName.value = name;
+            const editEmail = document.getElementById('edit-official-email');
+            if (editEmail) editEmail.value = email;
+
+            const tasksRes = await Tasks.list();
+            if (tasksRes.success && tasksRes.data) {
+                const tasks = tasksRes.data;
+                const taskList = document.getElementById('task-list');
+                if (taskList) {
+                    if (tasks.length === 0) {
+                        taskList.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-clipboard-check" style="font-size:2rem;"></i><p class="mt-2">No tasks assigned yet.</p></div>';
+                    } else {
+                        function priClass(p) {
+                            var m = {'Critical':'badge-critical','High':'badge-high','Medium':'badge-medium','Low':'badge-low','Overdue':'badge-critical'};
+                            return m[p] || 'badge-medium';
+                        }
+                        taskList.innerHTML = tasks.map(function(t) {
+                            var prog = t.progress || 0;
+                            var status = t.status || 'Pending';
+                            return '<div class="task-item" data-status="' + status + '" data-task-id="' + t.id + '"><div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2"><div><div class="task-title">' + (t.task_name||t.name||'') + '</div><div class="task-skills"><i class="bi bi-tools me-1"></i>' + (t.required_skills||t.skills||'—') + '</div></div><div class="d-flex gap-1 flex-wrap"><button class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" style="font-size:11px;" onclick="setTaskAction(this,\'Completed\')"><i class="bi bi-check-circle me-1"></i>Complete</button><button class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1" style="font-size:11px;" onclick="setTaskAction(this,\'Paused\')"><i class="bi bi-pause-circle me-1"></i>Pause</button><button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" style="font-size:11px;" onclick="setTaskAction(this,\'In Progress\')"><i class="bi bi-play-circle me-1"></i>Start</button><button class="btn-update" onclick="openUpdateModal(this,\'' + (t.task_name||t.name||'') + '\',\'' + status + '\', ' + t.id + ')">Update Progress</button></div></div><div class="task-meta"><span class="badge-priority ' + priClass(t.priority) + '">' + (t.priority||'Medium') + '</span><span class="task-deadline"><i class="bi bi-calendar3"></i> ' + (t.deadline||'—') + '</span><div class="task-status"><div class="progress-wrap"><div class="progress-bar-custom"><div class="progress-fill" style="width:' + prog + '%"></div></div><span class="status-text-label task-status-lbl">' + status + '</span></div></div></div></div>';
+                        }).join('');
+                    }
+                }
+
+                var total = tasks.length;
+                var completed = tasks.filter(function(t){return t.status==='Completed';}).length;
+                var inprog = tasks.filter(function(t){return t.status==='In Progress';}).length;
+                var pending = tasks.filter(function(t){return t.status==='Pending'||t.status==='Not Started';}).length;
+
+                var statEls = document.querySelectorAll('.stat-number, .action-number');
+                if (statEls[0]) statEls[0].textContent = total;
+                if (statEls[1]) statEls[1].textContent = inprog;
+                if (statEls[2]) statEls[2].textContent = completed;
+                if (statEls[3]) statEls[3].textContent = pending;
+            }
+            // Load projects
+            const projRes = await Projects.list();
+            if (projRes.success && projRes.data) {
+                const projects = projRes.data;
+                const projSection = document.getElementById('section-projects');
+                const projGrid = projSection ? projSection.querySelector('.row') || projSection : null;
+                if (projGrid) {
+                    if (projects.length === 0) {
+                        projGrid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="bi bi-folder2-open" style="font-size:2rem;"></i><p class="mt-2">No projects assigned yet.</p></div>';
+                    } else {
+                        projGrid.innerHTML = projects.map(function(p) {
+                            var prog = p.progress || 0;
+                            var statusClass = p.status === 'Completed' ? 'psb-done' : p.status === 'Active' ? 'psb-active' : 'psb-hold';
+                            return '<div class="col-md-6 col-12 animate-card"><div class="project-card"><div class="d-flex justify-content-between align-items-start mb-2"><div class="project-title">' + (p.name||'') + '</div><span class="project-status-badge ' + statusClass + '">' + (p.status||'Active') + '</span></div><div class="project-desc text-muted" style="font-size:13px;">' + (p.desc||p.client||'') + '</div><div class="d-flex justify-content-between align-items-center mt-3"><span style="font-size:12px;color:#94a3b8;"><i class="bi bi-calendar3 me-1"></i>' + (p.deadline||'—') + '</span><span style="font-size:12px;font-weight:600;">' + prog + '%</span></div><div class="progress mt-1" style="height:5px;border-radius:10px;"><div class="progress-bar" style="width:' + prog + '%;background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div></div></div></div>';
+                        }).join('');
+                    }
+                }
+            }
+
+            // Load notifications from backend
+            const notifRes = await Notifications.list();
+            const notifList = null;
+            if (notifList) {
+                if (!notifRes.success || !notifRes.data || notifRes.data.length === 0) {
+                    notifList.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-bell" style="font-size:2rem;"></i><p class="mt-2">No notifications yet.</p></div>';
+                }
+            }
+
+        } catch(e) { console.log('Dev data load error:', e); }
+    }
+    loadDevData();
+    </script>
+
+            <!-- PROJECT DETAIL MODAL -->
+            <div class="modal fade" id="projectDetailModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content" style="border-radius:24px;">
+                        <div class="modal-header" style="border-bottom:1px solid var(--border); padding:18px 22px 14px;">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0" id="pd-title">—</h5>
+                                    <span class="project-status-badge" id="pd-status">—</span>
+                                </div>
+                                <div class="text-muted mt-1" style="font-size:12px;">
+                                    <i class="bi bi-person me-1"></i><span id="pd-pm">—</span>
+                                    <span class="ms-3"><i class="bi bi-calendar3 me-1"></i><span id="pd-deadline">—</span></span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" style="padding:20px 22px 24px;">
+                            <p class="text-muted mb-3" style="font-size:13px;" id="pd-desc">—</p>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1" style="font-size:12px;font-weight:600;">
+                                    <span>Progress</span><span id="pd-progress-pct">0%</span>
+                                </div>
+                                <div class="project-bar mb-2">
+                                    <div class="project-bar-fill" id="pd-progress-bar" style="width:0%;transition:width .5s ease;"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="info-label mb-2">Tech Stack</div>
+                                <div id="pd-stack" class="d-flex gap-2 flex-wrap"></div>
+                            </div>
+                            <div>
+                                <div class="info-label mb-2">Project Documents</div>
+                                <div id="pd-docs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPDATE STATUS MODAL (updated with task name display) -->
+            <!-- NOTE: existing modal id="updateStatusModal" already exists above, just adding task name label -->
+        </body>
+        </html>
